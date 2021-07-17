@@ -3,6 +3,9 @@ GRID_WIDTH = $gtk.args.grid.w / GRID_SIZE
 GRID_HEIGHT = $gtk.args.grid.h / GRID_SIZE
 GRID_CENTER = $gtk.args.grid.w / 2
 GRID_MIDDLE = $gtk.args.grid.h / 2
+MAX_TICKS = 15
+MIN_TICKS = 3
+MOVE_MAX_LENGTH = 30
 
 class Snake
   def initialize
@@ -17,8 +20,9 @@ class Snake
     when :game
       handle_input(args)
       handle_move(args)
+      handle_edges
       handle_collisions
-      handle_fruit
+      handle_fruit(args)
     end
 
     args.outputs.primitives << to_p
@@ -36,7 +40,11 @@ class Snake
   end
 
   def handle_move(args)
-    return unless args.tick_count % @speed == 0
+    @ticks += 1
+    move_ticks = args.inputs.keyboard.key_held.space ? MIN_TICKS : @move_ticks
+    return unless @ticks > move_ticks
+
+    @ticks = 0
 
     if @length > @body.length
       @body << head
@@ -53,21 +61,25 @@ class Snake
     end
   end
 
+  def handle_edges
+    @logical_x = 0 if @logical_x > GRID_WIDTH
+    @logical_x = GRID_WIDTH if @logical_x < 0
+    @logical_y = 0 if @logical_y > GRID_HEIGHT
+    @logical_y = GRID_HEIGHT if @logical_y < 0
+  end
+
   def handle_collisions
     if @body.include?(head)
       # we crashed into ourselves
       @state = :game_over
-    elsif @logical_x < 0 || @logical_x > GRID_WIDTH || @logical_y < 0 || @logical_y > GRID_HEIGHT
-      # we crashed into the edge
-      @state = :game_over
     end
   end
 
-  def handle_fruit
+  def handle_fruit(args)
     return unless head == @fruit
 
     @length += 1
-    @speed -= 1
+    @move_ticks = move_ticks(args)
     @fruit = random_fruit
   end
 
@@ -84,13 +96,18 @@ class Snake
 
   def reset
     @direction = :right
-    @speed = 20
+    @ticks = 0
+    @move_ticks = MAX_TICKS
     @logical_x = GRID_WIDTH / 2
     @logical_y = GRID_HEIGHT / 2
     @length = 0
     @body = []
     @fruit = random_fruit
     @state = :game
+  end
+
+  def move_ticks(args)
+    [((1 - args.easing.ease(0, @length, MOVE_MAX_LENGTH, :quad)) * MAX_TICKS).round, MIN_TICKS].max
   end
 
   def to_p
