@@ -3,9 +3,11 @@ GRID_WIDTH = $gtk.args.grid.w / GRID_SIZE
 GRID_HEIGHT = $gtk.args.grid.h / GRID_SIZE
 GRID_CENTER = $gtk.args.grid.w / 2
 GRID_MIDDLE = $gtk.args.grid.h / 2
-MAX_TICKS = 15
-MIN_TICKS = 3
+MAX_MOVE_TICKS = 15
+MIN_MOVE_TICKS = 3
 MOVE_MAX_LENGTH = 30
+POINTS = [500, 250, 200, 150, 100, 75, 50, 25, 10, 5, 3, 2, 1]
+MAX_POINT_TICKS = 600
 
 LEVEL1 = <<-MAP.lines.reverse
 X..XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX..X
@@ -24,8 +26,8 @@ X..............X................................X..............X
 X..............X................................X..............X
 X..............................................................X
 X..............................................................X
-X..............................................................X
-X..............................................................X
+................................................................
+................................................................
 X..............................................................X
 X..............................................................X
 X..............................................................X
@@ -49,7 +51,7 @@ MAP
 class Snake
   def initialize
     reset
-    @state = :new_game
+    # @state = :new_game
   end
 
   def tick(args)
@@ -58,6 +60,8 @@ class Snake
       handle_menu(args)
     when :game_starting
       draw_map(args)
+      @state = :game
+      @fruit_tick = args.tick_count
     when :game
       handle_input(args)
       handle_move(args)
@@ -84,7 +88,7 @@ class Snake
   def handle_move(args)
     @ticks += 1
     holding = args.inputs.keyboard.key_held.send(@direction)
-    move_ticks = holding ? MIN_TICKS : @move_ticks
+    move_ticks = holding ? MIN_MOVE_TICKS : @move_ticks
     return unless @ticks > move_ticks
 
     @ticks = 0
@@ -126,7 +130,9 @@ class Snake
 
     @length += 1
     @move_ticks = move_ticks(args)
+    @score += [POINTS[(args.easing.ease(0, args.tick_count - @fruit_tick, MAX_POINT_TICKS, :identity) * POINTS.length).round].to_i, 1].max
     @fruit = random_fruit
+    @fruit_tick = args.tick_count
   end
 
   def handle_menu(args)
@@ -145,17 +151,19 @@ class Snake
   def reset
     @direction = :right
     @ticks = 0
-    @move_ticks = MAX_TICKS
+    @move_ticks = MAX_MOVE_TICKS
     @logical_x = GRID_WIDTH / 2
     @logical_y = GRID_HEIGHT / 2
     @length = 1
     @body = []
     @fruit = random_fruit
     @state = :game_starting
+    @score = 0
+    $gtk.args.outputs.static_primitives.clear
   end
 
   def move_ticks(args)
-    [((1 - args.easing.ease(0, @length, MOVE_MAX_LENGTH, :quad)) * MAX_TICKS).round, MIN_TICKS].max
+    [((1 - args.easing.ease(0, @length, MOVE_MAX_LENGTH, :quad)) * MAX_MOVE_TICKS).round, MIN_MOVE_TICKS].max
   end
 
   def to_p
@@ -163,15 +171,13 @@ class Snake
     when :new_game
       [text('WYRM', 0, 30), text('Press [SPACE] to play', -50)]
     when :game
-      [head_sprite] +
-        @body.map { |pos| body_sprite(pos) } +
-        [fruit_sprite(@fruit)]
+      @body.map { |pos| body_sprite(pos) } + [head_sprite, fruit_sprite, score]
     when :game_over
-      [text('GAME OVER'), text('Press [SPACE] to play again', -50)]
+      [text('GAME OVER'), text('Press [SPACE] to play again', -50), score]
     end
   end
 
-  def section(pos, color = { r: 203, g: 220, b: 64 })
+  def block(pos, color = { r: 47, g: 79, b: 79 })
     { x: pos.x * GRID_SIZE, y: pos.y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE }.merge(color).solid
   end
 
@@ -189,8 +195,14 @@ class Snake
     { x: pos.x * GRID_SIZE, y: pos.y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE, path: 'sprites/body.png' }.sprite
   end
 
-  def fruit_sprite(pos)
-    { x: pos.x * GRID_SIZE, y: pos.y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE, path: 'sprites/peach.png' }.sprite
+  def fruit_sprite
+    { x: @fruit.x * GRID_SIZE, y: @fruit.y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE, path: 'sprites/peach.png' }.sprite
+  end
+
+  def score
+    { x: 1250, y: 685, text: @score.to_s.rjust(5, '0'), size_enum: 18,
+      alignment_enum: 2, r: 47, g: 79, b: 79, a: 255, vertical_alignment_enum: 1,
+      font: 'fonts/MayflowerAntique.ttf' }
   end
 
   def text(str, y_offset = 0, size_enum = 2)
@@ -205,14 +217,13 @@ class Snake
 
   def draw_map(args)
     args.outputs.static_primitives << walls
-    @state = :game
   end
 
   def walls
     [].tap do |walls|
       GRID_HEIGHT.times do |y|
         GRID_WIDTH.times do |x|
-          walls << section([x, y], { r: 33, g: 33, b: 33 }) if LEVEL1[y][x] == 'X'
+          walls << block([x, y]) if LEVEL1[y][x] == 'X'
         end
       end
     end
