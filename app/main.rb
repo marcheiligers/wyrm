@@ -66,6 +66,7 @@ class Snake
       handle_fruit(args)
     end
 
+    args.outputs.background_color = [135, 206, 250]
     args.outputs.primitives << to_p
   end
 
@@ -160,11 +161,11 @@ class Snake
   def to_p
     case @state
     when :new_game
-      [text('WYRM'), text('Press [SPACE] to play', -50)]
+      [text('WYRM', 0, 30), text('Press [SPACE] to play', -50)]
     when :game
-      [section(head, { r: 89, g: 129, b: 59 })] +
-        @body.map { |pos| section(pos) } +
-        [section(@fruit, { r: 200, g: 12, b: 12 })]
+      [head_sprite] +
+        @body.map { |pos| body_sprite(pos) } +
+        [fruit_sprite(@fruit)]
     when :game_over
       [text('GAME OVER'), text('Press [SPACE] to play again', -50)]
     end
@@ -174,8 +175,28 @@ class Snake
     { x: pos.x * GRID_SIZE, y: pos.y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE }.merge(color).solid
   end
 
-  def text(str, y_offset = 0)
-    { x: GRID_CENTER, y: GRID_MIDDLE + y_offset, text: str, size_enum: 2, alignment_enum: 1, r: 155, g: 50, b: 50, a: 255, vertical_alignment_enum: 1 }
+  def head_sprite
+    angle = case @direction
+            when :left then -90
+            when :right then 90
+            when :up then 180
+            when :down then 0
+            end
+    { x: @logical_x * GRID_SIZE, y: @logical_y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE, path: 'sprites/snake.png', angle: angle }.sprite
+  end
+
+  def body_sprite(pos)
+    { x: pos.x * GRID_SIZE, y: pos.y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE, path: 'sprites/body.png' }.sprite
+  end
+
+  def fruit_sprite(pos)
+    { x: pos.x * GRID_SIZE, y: pos.y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE, path: 'sprites/peach.png' }.sprite
+  end
+
+  def text(str, y_offset = 0, size_enum = 2)
+    { x: GRID_CENTER, y: GRID_MIDDLE + y_offset, text: str, size_enum: size_enum,
+      alignment_enum: 1, r: 155, g: 50, b: 50, a: 255, vertical_alignment_enum: 1,
+      font: 'fonts/BLKCHCRY.TTF' }
   end
 
   def head
