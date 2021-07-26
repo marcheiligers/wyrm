@@ -8,6 +8,8 @@ MIN_MOVE_TICKS = 3
 MOVE_MAX_LENGTH = 30
 POINTS = [500, 250, 200, 150, 100, 75, 50, 25, 10, 5, 3, 2, 1]
 MAX_POINT_TICKS = 600
+PRIMARY_FONT = 'fonts/BLKCHCRY.TTF'
+SECONDARY_FONT = 'fonts/MayflowerAntique.ttf'
 
 LEVEL1 = <<-MAP.lines.reverse
 X..XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX..X
@@ -51,7 +53,9 @@ MAP
 class Snake
   def initialize
     reset
-    # @state = :new_game
+    @state = :new_game
+    @menu = Menu.new
+    @menu.drop!
   end
 
   def tick(args)
@@ -59,8 +63,10 @@ class Snake
     when :new_game, :game_over
       handle_menu(args)
     when :game_starting
-      draw_map(args)
-      @state = :game
+      @menu.rise!
+      @state = :menu_rising
+    when :menu_rising
+      @state = :game if @menu.finished?
       @fruit_tick = args.tick_count
     when :game
       handle_input(args)
@@ -173,11 +179,13 @@ class Snake
 
   def to_p
     case @state
-    when :new_game
-      [text('WYRM', 0, 30), text('Press [SPACE] to play', -50)]
+    when :new_game, :game_starting
+      @menu.to_p
+    when :menu_rising
+      [walls, head_sprite, fruit_sprite, score, @menu.to_p]
     when :game
       @animations.reject!(&:finished?)
-      @body.map { |pos| body_sprite(pos) } + [head_sprite, fruit_sprite, score] + @animations.map(&:to_p)
+      walls + @body.map { |pos| body_sprite(pos) } + [head_sprite, fruit_sprite, score] + @animations.map(&:to_p)
     when :game_over
       [text('GAME OVER'), text('Press [SPACE] to play again', -50), score]
     end
@@ -208,28 +216,26 @@ class Snake
   def score
     { x: 1250, y: 685, text: @score.to_s.rjust(5, '0'), size_enum: 18,
       alignment_enum: 2, r: 47, g: 79, b: 79, a: 255, vertical_alignment_enum: 1,
-      font: 'fonts/MayflowerAntique.ttf' }
+      font: SECONDARY_FONT }
   end
 
   def text(str, y_offset = 0, size_enum = 2)
     { x: GRID_CENTER, y: GRID_MIDDLE + y_offset, text: str, size_enum: size_enum,
       alignment_enum: 1, r: 155, g: 50, b: 50, a: 255, vertical_alignment_enum: 1,
-      font: 'fonts/BLKCHCRY.TTF' }
+      font: PRIMARY_FONT }
   end
 
   def head
     [@logical_x, @logical_y]
   end
 
-  def draw_map(args)
-    args.outputs.static_primitives << walls
-  end
-
   def walls
-    [].tap do |walls|
-      GRID_HEIGHT.times do |y|
-        GRID_WIDTH.times do |x|
-          walls << block([x, y]) if LEVEL1[y][x] == 'X'
+    @walls = begin
+      [].tap do |walls|
+        GRID_HEIGHT.times do |y|
+          GRID_WIDTH.times do |x|
+            walls << block([x, y]) if LEVEL1[y][x] == 'X'
+          end
         end
       end
     end
