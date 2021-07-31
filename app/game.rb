@@ -10,6 +10,8 @@ POINTS = [500, 250, 200, 150, 100, 75, 50, 25, 10, 5, 3, 2, 1]
 MAX_POINT_TICKS = 600
 PRIMARY_FONT = 'fonts/BLKCHCRY.TTF'
 SECONDARY_FONT = 'fonts/MayflowerAntique.ttf'
+CLOUD_CHANCE = 0.003
+STARTING_CLOUDS = 3
 
 class Snake
   def initialize
@@ -135,6 +137,7 @@ class Snake
     @state = :game_starting
     @score = 0
     @animations = []
+    STARTING_CLOUDS.times { @animations << Cloud.new }
     $gtk.args.outputs.static_primitives.clear
   end
 
@@ -150,7 +153,8 @@ class Snake
       [@map.to_p, head_sprite, fruit_sprite, score, @menu.to_p]
     when :game
       @animations.reject!(&:finished?)
-      [@map.to_p] + @body.map { |pos| body_sprite(pos) } + [head_sprite, fruit_sprite, score] + @animations.map(&:to_p)
+      @animations << Cloud.new(anywhere: false) if rand < CLOUD_CHANCE
+      [@map.to_p] + @body.map { |pos| body_sprite(pos) } + [head_sprite, wings_sprite, fruit_sprite, score] + @animations.map(&:to_p)
     when :game_over
       [text('GAME OVER'), text('Press [SPACE] to play again', -50), score]
     end
@@ -163,15 +167,50 @@ class Snake
             when :up then 180
             when :down then 0
             end
-    { x: @logical_x * GRID_SIZE, y: @logical_y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE, path: 'sprites/snake.png', angle: angle }.sprite
+    { x: @logical_x * GRID_SIZE, y: @logical_y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE, path: 'sprites/head.png', angle: angle }.sprite
   end
 
   def body_sprite(pos)
-    { x: pos.x * GRID_SIZE, y: pos.y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE, path: 'sprites/body.png' }.sprite
+    { x: pos.x * GRID_SIZE, y: pos.y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE, path: 'sprites/body2.png' }.sprite
+  end
+
+  def wings_sprite
+    anim = ($args.tick_count / 10).to_i % 3
+    case @direction
+    when :left
+      angle = 180
+      x = @logical_x + 1
+      y = @logical_y - 1
+    when :right
+      angle = 0
+      x = @logical_x - 1
+      y = @logical_y - 1
+    when :up
+      angle = 90
+      x = @logical_x
+      y = @logical_y - 2
+    when :down
+      angle = -90
+      x = @logical_x
+      y = @logical_y
+    end
+
+    {
+      x: x * GRID_SIZE,
+      y: y * GRID_SIZE,
+      w: GRID_SIZE,
+      h: GRID_SIZE * 3,
+      path: 'sprites/wings.png',
+      angle: angle,
+      source_x: anim * 5,
+      source_y: 0,
+      source_w: 5,
+      source_h: 15
+    }.sprite
   end
 
   def fruit_sprite
-    { x: @fruit.x * GRID_SIZE, y: @fruit.y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE, path: 'sprites/peach.png' }.sprite
+    { x: @fruit.x * GRID_SIZE, y: @fruit.y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE, path: 'sprites/peach2.png' }.sprite
   end
 
   def score

@@ -9,11 +9,13 @@ class Menu
 
     rt.primitives << { x: 75, y: 75, w: 1130, h: 570, r: 142, g: 199, b: 241, a: 200 }.solid
 
-    rt.primitives << { x: 50, y: 500, w: 1180, h: 218, path: 'sprites/menu_top.png' }.sprite
-    rt.primitives << { x: 15, y: 15, w: 400, h: 400, path: 'sprites/menu_corner.png' }.sprite
-    rt.primitives << { x: 865, y: 15, w: 400, h: 400, path: 'sprites/menu_corner.png', flip_horizontally: true }.sprite
+    rt.primitives << { x: 50, y: 500, w: 1180, h: 218, path: 'sprites/menu_top2.png' }.sprite
+    rt.primitives << { x: 15, y: 15, w: 400, h: 400, path: 'sprites/menu_corner2.png' }.sprite
+    rt.primitives << { x: 865, y: 15, w: 400, h: 400, path: 'sprites/menu_corner2.png', flip_horizontally: true }.sprite
 
-    rt.primitives << [text('WYRM', 100, 60), text('Press [SPACE] to play', -50, 3, SECONDARY_FONT)]
+    rt.primitives << { x: 390, y: 360, w: 512, h: 128, path: 'sprites/title.png' }.sprite
+
+    rt.primitives << [text('Press [SPACE] to play', -50, 3, SECONDARY_FONT)]
 
     @primitive = { x: 0, y: 0, w: 1280, h: 720, path: TARGET, source_x: 0, source_y: 0, source_w: 1280, source_h: 720 }.sprite
     @state = :hidden
