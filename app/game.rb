@@ -11,51 +11,13 @@ MAX_POINT_TICKS = 600
 PRIMARY_FONT = 'fonts/BLKCHCRY.TTF'
 SECONDARY_FONT = 'fonts/MayflowerAntique.ttf'
 
-LEVEL1 = <<-MAP.lines.reverse
-X..XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX..X
-................................................................
-................................................................
-X..............................................................X
-X..............................................................X
-X..............................................................X
-X..............................................................X
-X..............................................................X
-X..............................................................X
-X..............................................................X
-X..............................................................X
-X..............XXXXXXXX..................XXXXXXXX..............X
-X..............X................................X..............X
-X..............X................................X..............X
-X..............................................................X
-X..............................................................X
-................................................................
-................................................................
-X..............................................................X
-X..............................................................X
-X..............................................................X
-X..............X................................X..............X
-X..............X................................X..............X
-X..............XXXXXXXX..................XXXXXXXX..............X
-X..............................................................X
-X..............................................................X
-X..............................................................X
-X..............................................................X
-X..............................................................X
-X..............................................................X
-X..............................................................X
-X..............................................................X
-X..............................................................X
-................................................................
-................................................................
-X..XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX..X
-MAP
-
 class Snake
   def initialize
     reset
     @state = :new_game
     @menu = Menu.new
     @menu.drop!
+    @map = Map.new
   end
 
   def tick(args)
@@ -64,6 +26,7 @@ class Snake
       handle_menu(args)
     when :game_starting
       @menu.rise!
+      @map.appear!
       @state = :menu_rising
     when :menu_rising
       @state = :game if @menu.finished?
@@ -124,9 +87,11 @@ class Snake
   def handle_collisions
     if @body.include?(head)
       # we crashed into ourselves
+      puts "Crashed into ourselves"
       @state = :game_over
-    elsif LEVEL1[@logical_y][@logical_x] == 'X'
+    elsif @map.wall?(@logical_x, @logical_y)
       # we crashed into a wall
+      puts "Crashed into a wall"
       @state = :game_over
     end
   end
@@ -182,17 +147,13 @@ class Snake
     when :new_game, :game_starting
       @menu.to_p
     when :menu_rising
-      [walls, head_sprite, fruit_sprite, score, @menu.to_p]
+      [@map.to_p, head_sprite, fruit_sprite, score, @menu.to_p]
     when :game
       @animations.reject!(&:finished?)
-      walls + @body.map { |pos| body_sprite(pos) } + [head_sprite, fruit_sprite, score] + @animations.map(&:to_p)
+      [@map.to_p] + @body.map { |pos| body_sprite(pos) } + [head_sprite, fruit_sprite, score] + @animations.map(&:to_p)
     when :game_over
       [text('GAME OVER'), text('Press [SPACE] to play again', -50), score]
     end
-  end
-
-  def block(pos, color = { r: 47, g: 79, b: 79 })
-    { x: pos.x * GRID_SIZE, y: pos.y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE }.merge(color).solid
   end
 
   def head_sprite
@@ -227,18 +188,6 @@ class Snake
 
   def head
     [@logical_x, @logical_y]
-  end
-
-  def walls
-    @walls = begin
-      [].tap do |walls|
-        GRID_HEIGHT.times do |y|
-          GRID_WIDTH.times do |x|
-            walls << block([x, y]) if LEVEL1[y][x] == 'X'
-          end
-        end
-      end
-    end
   end
 end
 
