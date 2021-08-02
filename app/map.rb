@@ -47,7 +47,7 @@ class Map
     rt = $args.render_target(TARGET)
     rt.primitives << walls
 
-    @primitive = { x: 0, y: 0, w: 1280, h: 720, path: TARGET, source_x: 0, source_y: 0, source_w: 1280, source_h: 720 }.sprite
+    @primitive = { x: 0, y: 0, w: 1280, h: 720, path: TARGET, source_x: 0, source_y: 0, source_w: 1280, source_h: 720 }.sprite!
     @state = :hidden
   end
 
@@ -92,6 +92,6 @@ class Map
   end
 
   def block(pos, color = { r: 47, g: 79, b: 79 })
-    { x: pos.x * GRID_SIZE, y: pos.y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE }.merge(color).solid
+    { x: pos.x * GRID_SIZE, y: pos.y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE }.solid!(color)
   end
 end

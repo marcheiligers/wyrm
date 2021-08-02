@@ -14,6 +14,8 @@ CLOUD_CHANCE = 0.003
 STARTING_CLOUDS = 3
 
 class Snake
+  include Numbers
+
   def initialize
     reset
     @state = :new_game
@@ -131,7 +133,7 @@ class Snake
     @move_ticks = MAX_MOVE_TICKS
     @logical_x = GRID_WIDTH / 2
     @logical_y = GRID_HEIGHT / 2
-    @length = 1
+    @length = 2
     @body = []
     @fruit = random_fruit
     @state = :game_starting
@@ -161,13 +163,26 @@ class Snake
   end
 
   def head_sprite
-    angle = case @direction
-            when :left then -90
-            when :right then 90
-            when :up then 180
-            when :down then 0
-            end
-    { x: @logical_x * GRID_SIZE, y: @logical_y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE, path: 'sprites/head.png', angle: angle }.sprite
+    case @direction
+    when :left
+      angle = -90
+      x = @logical_x * GRID_SIZE
+      y = @logical_y * GRID_SIZE - 4
+    when :right
+      angle = 90
+      x = @logical_x * GRID_SIZE - 8
+      y = @logical_y * GRID_SIZE - 4
+    when :up
+      angle = 180
+      x = @logical_x * GRID_SIZE - 4
+      y = @logical_y * GRID_SIZE - 8
+    when :down
+      angle = 0
+      x = @logical_x * GRID_SIZE - 4
+      y = @logical_y * GRID_SIZE
+    end
+
+    { x: x, y: y, w: GRID_SIZE + 8, h: GRID_SIZE + 8, path: 'sprites/head3.png', angle: angle }.sprite
   end
 
   def body_sprite(pos)
@@ -214,9 +229,10 @@ class Snake
   end
 
   def score
-    { x: 1250, y: 685, text: @score.to_s.rjust(5, '0'), size_enum: 18,
-      alignment_enum: 2, r: 47, g: 79, b: 79, a: 255, vertical_alignment_enum: 1,
-      font: SECONDARY_FONT }
+    draw_number(1100, 664, @score.to_s.rjust(5, '0'))
+    # { x: 1250, y: 685, text: @score.to_s.rjust(5, '0'), size_enum: 18,
+    #   alignment_enum: 2, r: 47, g: 79, b: 79, a: 255, vertical_alignment_enum: 1,
+    #   font: SECONDARY_FONT }
   end
 
   def text(str, y_offset = 0, size_enum = 2)
