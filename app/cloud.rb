@@ -17,7 +17,7 @@ class Cloud
     a = rand(100) + 25
     r = 0
 
-    @primitive = { x: x, y: y, w: c[:w] * z, h: c[:h] * z, a: a, path: "sprites/cloud#{i}.png", angle: r }.sprite
+    @primitive = { x: x, y: y, w: c[:w] * z, h: c[:h] * z, a: a, path: "sprites/cloud#{i}.png", angle: r }.sprite!
   end
 
   def finished?

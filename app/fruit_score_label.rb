@@ -75,7 +75,7 @@ class FruitScoreLabel
         font:                    FONT,
         alignment_enum:          1,
         vertical_alignment_enum: 1, # 0 is bottom, 1 is middle, 2 is top
-      }.label,
+      }.label!,
       {
         x:                       @x - @outline,
         y:                       @y + @outline + dy,
@@ -88,7 +88,7 @@ class FruitScoreLabel
         font:                    FONT,
         alignment_enum:          1,
         vertical_alignment_enum: 1, # 0 is bottom, 1 is middle, 2 is top
-      }.label,
+      }.label!,
       {
         x:                       @x + @outline,
         y:                       @y - @outline + dy,
@@ -101,7 +101,7 @@ class FruitScoreLabel
         font:                    FONT,
         alignment_enum:          1,
         vertical_alignment_enum: 1, # 0 is bottom, 1 is middle, 2 is top
-      }.label,
+      }.label!,
       {
         x:                       @x + @outline,
         y:                       @y + @outline + dy,
@@ -114,7 +114,7 @@ class FruitScoreLabel
         font:                    FONT,
         alignment_enum:          1,
         vertical_alignment_enum: 1, # 0 is bottom, 1 is middle, 2 is top
-      }.label,
+      }.label!,
       {
         x:                       @x,
         y:                       @y + dy,
@@ -127,7 +127,7 @@ class FruitScoreLabel
         font:                    FONT,
         alignment_enum:          1,
         vertical_alignment_enum: 1, # 0 is bottom, 1 is middle, 2 is top
-      }.label
+      }.label!
     ]
   end
 end
