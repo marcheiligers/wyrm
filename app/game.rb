@@ -64,6 +64,7 @@ class Game
     label.animate
     @animations << label
     @fruit = random_fruit
+    @gem.move_to(@fruit.x, @fruit.y)
     @fruit_tick = args.tick_count
   end
 
@@ -89,6 +90,7 @@ class Game
     @animations = []
     @wyrm.reset
     @fruit = random_fruit
+    @gem = Gem.new(@fruit.x, @fruit.y)
     STARTING_CLOUDS.times { @animations << Cloud.new }
   end
 
@@ -97,19 +99,19 @@ class Game
     when :new_game, :game_starting
       @menu.to_p
     when :menu_rising
-      [@map.to_p, @wyrm.to_p, fruit_sprite, score, @menu.to_p]
+      [@map.to_p, @wyrm.to_p, @gem.to_p, score, @menu.to_p]
     when :game
       @animations.reject!(&:finished?)
       @animations << Cloud.new(anywhere: false) if rand < CLOUD_CHANCE
-      [@map.to_p] + @wyrm.to_p + [fruit_sprite, score] + @animations.map(&:to_p)
+      [@map.to_p, @wyrm.to_p, @gem.to_p, score, @animations.map(&:to_p)]
     when :game_over
       [text('GAME OVER'), text('Press [SPACE] to play again', -50), score]
     end
   end
 
-  def fruit_sprite
-    { x: @fruit.x * GRID_SIZE, y: @fruit.y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE, path: 'sprites/peach2.png' }.sprite!
-  end
+  # def fruit_sprite
+  #   { x: @fruit.x * GRID_SIZE, y: @fruit.y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE, path: 'sprites/gem.png' }.sprite!
+  # end
 
   def score
     draw_number(1100, 664, @score.to_s.rjust(5, '0'))

@@ -7,7 +7,7 @@ class Body
   end
 
   def reset
-    @length = 100
+    @length = 2
     @body = []
   end
 

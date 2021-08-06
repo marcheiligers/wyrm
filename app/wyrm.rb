@@ -3,6 +3,7 @@ class Wyrm
 
   def initialize
     @body = Body.new(self)
+    @wings = Wings.new(self)
   end
 
   def reset
@@ -70,7 +71,7 @@ class Wyrm
   end
 
   def to_p
-    [head_sprite, wings_sprite] + @body.to_p
+    [head_sprite, @wings.to_p, @body.to_p]
   end
 
   def head_sprite
@@ -94,40 +95,5 @@ class Wyrm
     end
 
     { x: x, y: y, w: GRID_SIZE + 8, h: GRID_SIZE + 8, path: 'sprites/head3.png', angle: angle }.sprite!
-  end
-
-  def wings_sprite
-    anim = ($args.tick_count / 10).to_i % 3
-    case @direction
-    when :left
-      angle = 180
-      x = @logical_x + 1
-      y = @logical_y - 1
-    when :right
-      angle = 0
-      x = @logical_x - 1
-      y = @logical_y - 1
-    when :up
-      angle = 90
-      x = @logical_x
-      y = @logical_y - 2
-    when :down
-      angle = -90
-      x = @logical_x
-      y = @logical_y
-    end
-
-    {
-      x: x * GRID_SIZE,
-      y: y * GRID_SIZE,
-      w: GRID_SIZE,
-      h: GRID_SIZE * 3,
-      path: 'sprites/wings.png',
-      angle: angle,
-      source_x: anim * 5,
-      source_y: 0,
-      source_w: 5,
-      source_h: 15
-    }.sprite!
   end
 end

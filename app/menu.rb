@@ -49,10 +49,11 @@ class Menu
     end
 
     @spiral ||= { x: 592, y: 620, w: 96, h: 96, path: 'sprites/spiral.png' }.sprite!
+    @star ||= Star.new(1, 1)
 
     case @state
     when :visible
-      [@primitive.merge!(y: 0), @spiral.merge!(y: 620, angle: $args.tick_count % 360)]
+      [@primitive.merge!(y: 0), @spiral.merge!(y: 620, angle: $args.tick_count % 360), @star.to_p]
     when :dropping
       ticks = $args.tick_count - @start
       @state = :visible if ticks >= DROP_DURATION
