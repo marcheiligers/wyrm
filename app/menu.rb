@@ -34,9 +34,9 @@ class Menu
 
       rt.primitives << { x: 75, y: 75, w: 1130, h: 570, r: 142, g: 199, b: 241, a: 200 }.solid!
 
-      rt.primitives << { x: 50, y: 500, w: 1180, h: 218, path: 'sprites/menu_top3.png' }.sprite!
-      rt.primitives << { x: 6, y: 15, w: 512, h: 512, path: 'sprites/menu_corner3.png' }.sprite!
-      rt.primitives << { x: 762, y: 15, w: 512, h: 512, path: 'sprites/menu_corner3.png', flip_horizontally: true }.sprite!
+      rt.primitives << { x: 50, y: 500, w: 1180, h: 218, path: 'sprites/menu_top4.png' }.sprite!
+      rt.primitives << { x: 10, y: 15, w: 428, h: 428, path: 'sprites/menu_corner4.png' }.sprite!
+      rt.primitives << { x: 842, y: 15, w: 428, h: 428, path: 'sprites/menu_corner4.png', flip_horizontally: true }.sprite!
 
       rt.primitives << { x: 390, y: 360, w: 512, h: 128, path: 'sprites/title.png' }.sprite!
 
