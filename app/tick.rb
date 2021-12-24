@@ -1,4 +1,4 @@
 def tick(args)
-  $snake ||= Snake.new
-  $snake.tick(args)
+  $game ||= Game.new
+  $game.tick(args)
 end
