@@ -6,6 +6,7 @@ class Gem
 
   def initialize(x, y)
     move_to x, y
+    @visible = true
   end
 
   def move_to(x, y)
@@ -13,7 +14,21 @@ class Gem
     @y = y
   end
 
+  def show!
+    @visible = true
+  end
+
+  def hide!
+    @visible = false
+  end
+
+  def visible?
+    @visible
+  end
+
   def to_p
+    return unless visible?
+
     frame = (c = $args.tick_count.idiv(TICKS_PER_FRAME) % TOTAL_FRAMES) > FORWARD_FRAMES ? TOTAL_FRAMES - c : c
 
     {

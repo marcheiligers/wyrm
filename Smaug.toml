@@ -4,12 +4,12 @@ name = "wyrm"
 # The game's title. This will show up in the tile bar of your executable.
 title = "wyrm"
 version = "0.1.0"
-authors = ["TODO: My Name <todo@example.com>"]
+authors = ["Marc Heiligers <marc@eternal.co.za>"]
 icon = "metadata/icon.png"
 compile_ruby = false
 
 [dragonruby]
-version = "2.23"
+version = "3.2"
 edition = "pro"
 
 [dependencies]

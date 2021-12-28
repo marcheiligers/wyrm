@@ -1,11 +1,9 @@
-MAX_MOVE_TICKS = 15
-MIN_MOVE_TICKS = 3
-MOVE_MAX_LENGTH = 30
 POINTS = [500, 250, 200, 150, 100, 75, 50, 25, 10, 5, 3, 2, 1]
 MAX_POINT_TICKS = 600
 PRIMARY_FONT = 'fonts/BLKCHCRY.TTF'
 SECONDARY_FONT = 'fonts/MayflowerAntique.ttf'
 CLOUD_CHANCE = 0.003
+WHISP_CHANCE = 0.01
 STARTING_CLOUDS = 3
 
 class Game
@@ -16,6 +14,10 @@ class Game
     @menu.drop!
     @map = Map.new
     @wyrm = Wyrm.new
+    @sky = Sky.new
+    @sky.night!
+    @portal = Portal.new(610, 350)
+    @title_bar = TitleBar.new
 
     reset
   end
@@ -38,7 +40,7 @@ class Game
       handle_fruit(args)
     end
 
-    args.outputs.background_color = [135, 206, 250]
+    args.outputs.background_color = [12, 12, 12]
     args.outputs.primitives << to_p
   end
 
@@ -55,17 +57,24 @@ class Game
   end
 
   def handle_fruit(args)
-    return unless @wyrm.head == @fruit
+    return unless @wyrm.head == @fruit && @gem.visible?
 
     @wyrm.grow
     points = [POINTS[(args.easing.ease(0, args.tick_count - @fruit_tick, MAX_POINT_TICKS, :identity) * POINTS.length).round].to_i, 1].max
-    @score += points
+    @title_bar.gem_eaten(points)
+
     label = FruitScoreLabel.new(@wyrm.logical_x * GRID_SIZE + GRID_SIZE / 2, @wyrm.logical_y * GRID_SIZE, points.to_s, 5)
     label.animate
     @animations << label
-    @fruit = random_fruit
-    @gem.move_to(@fruit.x, @fruit.y)
-    @fruit_tick = args.tick_count
+
+    if @title_bar.gems_left > 0
+      @fruit = random_fruit
+      @gem.move_to(@fruit.x, @fruit.y)
+      @fruit_tick = args.tick_count
+    else
+      @gem.hide!
+      @portal.show!
+    end
   end
 
   def handle_menu(args)
@@ -78,7 +87,7 @@ class Game
   def random_fruit
     found = false
     begin
-      pos = [rand(GRID_WIDTH), rand(GRID_HEIGHT)]
+      pos = [rand(GRID_WIDTH), rand(GRID_HEIGHT - 1)] # the top row is reserved for the title bar
       found = true unless @map.wall?(pos.x, pos.y) || @wyrm.include?(pos)
     end while !found
     pos
@@ -86,38 +95,28 @@ class Game
 
   def reset
     @state = :new_game
-    @score = 0
     @animations = []
     @wyrm.reset
     @fruit = random_fruit
     @gem = Gem.new(@fruit.x, @fruit.y)
+    @title_bar.reset
     STARTING_CLOUDS.times { @animations << Cloud.new }
   end
 
   def to_p
     case @state
     when :new_game, :game_starting
-      @menu.to_p
+      [@sky.to_p, @menu.to_p]
     when :menu_rising
-      [@map.to_p, @wyrm.to_p, @gem.to_p, score, @menu.to_p]
+      [@sky.to_p, @map.to_p, @wyrm.to_p, @gem.to_p, @menu.to_p, @title_bar.to_p]
     when :game
       @animations.reject!(&:finished?)
       @animations << Cloud.new(anywhere: false) if rand < CLOUD_CHANCE
-      [@map.to_p, @wyrm.to_p, @gem.to_p, score, @animations.map(&:to_p)]
+      @animations << Whisp.new(rand(1200) + 40, rand(600) + 60) if rand < WHISP_CHANCE
+      [@sky.to_p, @map.to_p, @wyrm.to_p, @gem.to_p, @animations.map(&:to_p), @portal.to_p, @title_bar.to_p]
     when :game_over
-      [text('GAME OVER'), text('Press [SPACE] to play again', -50), score]
+      [@sky.to_p, text('GAME OVER'), text('Press [SPACE] to play again', -50), @title_bar.to_p]
     end
-  end
-
-  # def fruit_sprite
-  #   { x: @fruit.x * GRID_SIZE, y: @fruit.y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE, path: 'sprites/gem.png' }.sprite!
-  # end
-
-  def score
-    draw_number(1100, 664, @score.to_s.rjust(5, '0'))
-    # { x: 1250, y: 685, text: @score.to_s.rjust(5, '0'), size_enum: 18,
-    #   alignment_enum: 2, r: 47, g: 79, b: 79, a: 255, vertical_alignment_enum: 1,
-    #   font: SECONDARY_FONT }
   end
 
   def text(str, y_offset = 0, size_enum = 2)
