@@ -3,10 +3,18 @@ class Wyrm
   MIN_MOVE_TICKS = 4
   MOVE_MAX_LENGTH = 100
 
+  PORTAL_MOVE_TICKS = 10
+
   ACCEL_MOD = 5
   DECCEL_MOD = 8
 
-  attr_reader :logical_x, :logical_y, :length, :direction
+  attr_reader :logical_x, :logical_y, :direction, :state
+
+  # State 
+  # => :normal - normal game state
+  # => :portal_enter - disappearing into the portal
+  # => :portal_entered - disappeared into the portal
+  # => :portal_exit - disappearing into the portal
 
   def initialize
     @body = Body.new(self)
@@ -14,19 +22,31 @@ class Wyrm
   end
 
   def reset
-    @direction = :right
-    @next_direction = :right
-    @logical_x = GRID_WIDTH / 2
-    @logical_y = GRID_HEIGHT / 2
-    @ticks = 0
     @move_ticks = MAX_MOVE_TICKS # number of ticks between moves
     @accel_move_ticks = 0 # number of ticks to subtact from @move_ticks due to acceleration
 
     @body.reset
+    exit_portal!
   end
 
   def head
     [@logical_x, @logical_y]
+  end
+
+  def enter_portal!
+    @state = :portal_enter
+    @portal_length = 1
+  end
+
+  def exit_portal!
+    @direction = :right
+    @next_direction = :right
+    @ticks = 0
+    @logical_x = 15
+    @logical_y = 8
+    @state = :portal_exit
+    @portal_length = @body.length + 1
+    @body.exit_portal!
   end
 
   def include?(pos)
@@ -61,7 +81,19 @@ class Wyrm
     @ticks += 1
     return unless should_move?
 
-    @direction = @next_direction
+    @direction = @next_direction unless @state == :portal_enter
+
+    if @state == :portal_enter
+puts "#{@portal_length} #{@body.length}"
+      @portal_length += 1 
+      @state = :portal_entered if @portal_length == @body.length + 2
+    end
+
+    if @state == :portal_exit
+      @portal_length -= 1
+      @state = :normal if @portal_length == 0
+    end
+
     @ticks = 0
     @body.move
 
@@ -79,7 +111,11 @@ class Wyrm
   end
 
   def should_move?
-    move_ticks = [MIN_MOVE_TICKS, @move_ticks - @accel_move_ticks].max
+    move_ticks = if @state == :portal_enter
+                   MIN_MOVE_TICKS
+                 else
+                   [MIN_MOVE_TICKS, @move_ticks - @accel_move_ticks].max
+                 end
     @ticks > move_ticks
   end
 
@@ -93,9 +129,25 @@ class Wyrm
   end
 
   def to_p
-    [head_sprite, @wings.to_p, @body.to_p]
+    case state
+    when :normal
+      [head_sprite, @wings.to_p, @body.to_p]
+    when :portal_enter
+      case @portal_length
+      when 0 then [head_sprite, @wings.to_p, @body.to_p]
+      when 1 then [@wings.to_p, @body.to_p]
+      else @body.to_p([@portal_length - 2, 0].max)
+      end
+    when :portal_exit
+      case @portal_length
+      when @body.length + 1 then [head_sprite]
+      when @body.length then [head_sprite, @wings.to_p, @body.to_p(@body.length - 1)]
+      else [head_sprite, @wings.to_p, @body.to_p(@portal_length - 1)]
+      end
+    end
   end
 
+  # The head sprite is 14x14 to accommodate the horns, so it's offset a little
   def head_sprite
     case @direction
     when :left

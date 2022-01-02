@@ -1,4 +1,5 @@
 class Body
+  # body is made up of [logical_x, logical_y, direction_sym]
   BODY_DEFAULTS = { w: GRID_SIZE, h: GRID_SIZE, path: 'sprites/body3.png' }
   TAIL_DEFAULTS = { 
     w: GRID_SIZE, 
@@ -32,12 +33,16 @@ class Body
     @length += 1
   end
 
+  def exit_portal!
+    @body = []
+  end
+
   def include?(pos)
     @body.any? { |part| part[0] == pos[0] && part[1] == pos[1] }
   end
 
-  def to_p
-    @body.map_with_index { |part, index| index > 0 ? body_sprite(part) : tail_sprite(part) }
+  def to_p(portal_length = 0)
+    @body.first(@length - portal_length).map_with_index { |part, index| index > 0 ? body_sprite(part) : tail_sprite(part) }
   end
 
   def body_sprite(part)

@@ -1,6 +1,6 @@
 class Whisp
   ANIM_FRAMES = 6
-  TICKS_PER_FRAME = 6
+  TICKS_PER_FRAME = 5
 
 #    STATE   SPRITE_FRAME    PASSAGE OF      HOW LONG   HOW MANY
 #      |          |             TIME         TO SHOW    IMAGES
@@ -18,7 +18,7 @@ class Whisp
     @y = y
     @frame = 0 
     @start_tick = $args.tick_count
-    @alpha = rand(100) + 50
+    @alpha = rand(200) + 55
   end
 
   def to_p
@@ -27,8 +27,8 @@ class Whisp
     {
       x: @x,
       y: @y,
-      w: 128,
-      h: 128,
+      w: 64 * PIXEL_MUL,
+      h: 64 * PIXEL_MUL,
       a: @alpha,
       path: 'sprites/whisp1.png',
       source_x: @frame * 64,

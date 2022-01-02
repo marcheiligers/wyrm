@@ -1,13 +1,15 @@
 PIXEL_MUL = 4
 GRID_SIZE = 10 * PIXEL_MUL
-GRID_WIDTH = ($gtk.args.grid.w / GRID_SIZE).to_i
-GRID_HEIGHT = ($gtk.args.grid.h / GRID_SIZE).to_i
-GRID_CENTER = ($gtk.args.grid.w / 2).to_i
-GRID_MIDDLE = ($gtk.args.grid.h / 2).to_i
+GRID_WIDTH = ($args.grid.w / GRID_SIZE).to_i
+GRID_HEIGHT = ($args.grid.h / GRID_SIZE).to_i
+GRID_CENTER = ($args.grid.w / 2).to_i
+GRID_MIDDLE = ($args.grid.h / 2).to_i
+
+GEMS_PER_LEVEL = 10
 
 require 'app/easing.rb'
 require 'app/numbers.rb'
-require 'app/fruit_score_label.rb'
+require 'app/score_label.rb'
 require 'app/cloud.rb'
 require 'app/star.rb'
 require 'app/whisp.rb'

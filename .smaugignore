@@ -1,5 +1,7 @@
 logs/
 builds/
 assets/
+fonts/
 exceptions
 Smaug.toml
+*.aseprite

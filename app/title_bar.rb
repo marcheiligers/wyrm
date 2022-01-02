@@ -1,46 +1,52 @@
 class TitleBar
 	include Numbers
 
-	# TODO: this really shouldn't be storing game state, just displaying it
+	BAR_Y = $args.grid.h - GRID_SIZE
+
 	RECT = {
 		x: 0,
-		y: $gtk.args.grid.h - GRID_SIZE,
-		w: $gtk.args.grid.w,
+		y: BAR_Y,
+		w: $args.grid.w,
 		h: GRID_SIZE,
 		r: 0,
 		g: 0,
 		b: 0
 	}.solid!
 
-	SCORE_X = $gtk.args.grid.w - 6 * GRID_SIZE
-	SCORE_Y = $gtk.args.grid.h - GRID_SIZE
+	TITLE = {
+		x: GRID_SIZE,
+		y: BAR_Y,
+		w: GRID_SIZE * 4,
+		h: GRID_SIZE,
+		path: 'sprites/title-small.png'
+	}.sprite!	
 
-	attr_reader :score, :gems_left
+	LEVEL = {
+		x: GRID_SIZE * 7,
+		y: BAR_Y,
+		w: GRID_SIZE * 4,
+		h: GRID_SIZE,
+		path: 'sprites/level.png'
+	}.sprite!	
+
+	LEVEL_X = 11 * GRID_SIZE
+	SCORE_X = $args.grid.w - 6 * GRID_SIZE
 
 	def initialize
-		reset
-		@gems = 10.times.map { |i| Gem.new(10 + i, 17) }
-	end
-
-	def reset
-		@score = 0
-		@gems_left = 10
-	end
-
-	def new_level
-		@gems_left = 10
-	end
-
-	def gem_eaten(points)
-		@score += points
-		@gems_left -= 1
+		@gems = GEMS_PER_LEVEL.times.map { |i| Gem.new(14 + i, 17, true) }
 	end
 
 	def to_p
-		[RECT, @gems.first(10 - @gems_left).map(&:to_p), score]
+		@gems.each_with_index { |gem, i| $game.gems_left <= GEMS_PER_LEVEL - i - 1 ? gem.light! : gem.dark! }
+
+		[RECT, TITLE, LEVEL, level, @gems.map(&:to_p), score]
+	end
+
+	def level
+		draw_number(LEVEL_X, BAR_Y, ($game.level + 1).to_s)
 	end
 
   def score
-    draw_number(SCORE_X, SCORE_Y, @score.to_s.rjust(5, '0'))
+    draw_number(SCORE_X, BAR_Y, $game.score.to_s.rjust(5, '0'))
   end
 end

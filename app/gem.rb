@@ -4,14 +4,19 @@ class Gem
   FORWARD_FRAMES = TOTAL_FRAMES / 2
   TICKS_PER_FRAME = 12
 
-  def initialize(x, y)
+  def initialize(x = 0, y = 0, dark = false)
     move_to x, y
     @visible = true
+    @dark = dark
   end
 
   def move_to(x, y)
     @x = x
     @y = y
+  end
+
+  def location
+    [@x, @y]
   end
 
   def show!
@@ -26,6 +31,14 @@ class Gem
     @visible
   end
 
+  def dark!
+    @dark = true
+  end
+
+  def light!
+    @dark = false
+  end
+
   def to_p
     return unless visible?
 
@@ -36,8 +49,8 @@ class Gem
       y: @y * GRID_SIZE,
       w: GRID_SIZE,
       h: GRID_SIZE,
-      path: 'sprites/gem4.png',
-      source_x: frame * 10,
+      path: @dark ? 'sprites/gem-dark.png' : 'sprites/gem4.png',
+      source_x: @dark ? 0 : frame * 10,
       source_y: 0,
       source_w: 10,
       source_h: 10

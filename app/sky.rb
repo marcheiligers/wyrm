@@ -6,8 +6,23 @@ class Sky
 		h: $gtk.args.grid.h
 	}.solid!
 
-	DAY = { r: 135, g: 206, b: 250 }
+	MORNING = { r: 238, g: 230, b: 148 }
+	DAY = { r: 115, g: 194, b: 238 }
+	AFTERNOON = { r: 90, g: 161, b: 213 }
 	NIGHT = { r: 7, g: 11, b: 51 }
+
+	COLORS = [
+		MORNING,
+		MORNING,
+		DAY,
+		DAY,
+		DAY,
+		AFTERNOON,
+		AFTERNOON,
+		NIGHT,
+		NIGHT,
+		NIGHT
+	]
 
 	def initialize
 		@state = :clear
@@ -19,6 +34,6 @@ class Sky
 	end
 
 	def to_p
-		RECT.merge(@color)
+		RECT.merge(COLORS[$game.level])
 	end
 end

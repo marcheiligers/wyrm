@@ -20,10 +20,10 @@ class Cloud
     z = PIXEL_MUL
     x = anywhere ? (rand(1000) + 140) : -c[:w] * PIXEL_MUL
     y = rand(720) - 50
-    a = rand(100) + 25
+    a = rand(100) + 150
     r = 0 # rand(360)
-    flip_horizontally = false # rand < 0.5
-    flip_vertically = false # rand < 0.5
+    flip_horizontally = rand < 0.5
+    flip_vertically = rand < 0.5
 
     @primitive = {
       x: x,

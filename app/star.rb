@@ -7,10 +7,15 @@ class Star
   def initialize(x, y)
     @x = x
     @y = y
+    @frame = 0
+  end
+
+  def finished?
+    false
   end
 
   def to_p
-    frame = (c = $args.tick_count.idiv(TICKS_PER_FRAME) % TOTAL_FRAMES) > FORWARD_FRAMES ? TOTAL_FRAMES - c : c
+    @frame = (c = $args.tick_count.idiv(TICKS_PER_FRAME) % TOTAL_FRAMES) > FORWARD_FRAMES ? TOTAL_FRAMES - c : c
 
     {
       x: @x * GRID_SIZE,
@@ -18,7 +23,7 @@ class Star
       w: GRID_SIZE,
       h: GRID_SIZE,
       path: 'sprites/star2.png',
-      source_x: frame * 10,
+      source_x: @frame * 10,
       source_y: 0,
       source_w: 10,
       source_h: 10
