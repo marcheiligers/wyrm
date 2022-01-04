@@ -19,6 +19,7 @@ class Wyrm
   def initialize
     @body = Body.new(self)
     @wings = Wings.new(self)
+    @move_ticks = MAX_MOVE_TICKS # number of ticks between moves
   end
 
   def reset
@@ -41,6 +42,7 @@ class Wyrm
   def exit_portal!
     @direction = :right
     @next_direction = :right
+    @direction_queue = []
     @ticks = 0
     @logical_x = 15
     @logical_y = 8
@@ -60,28 +62,42 @@ class Wyrm
   def handle_input
     inputs = $args.inputs
     if inputs.keyboard.key_held.truthy_keys.length > 2 # always has [:raw_key, :char]
-      if $args.tick_count % @move_ticks.idiv(ACCEL_MOD) == 0
+      if $args.tick_count % [@move_ticks.idiv(ACCEL_MOD), 1].max == 0
         @accel_move_ticks = [@accel_move_ticks + 1, @move_ticks.idiv(1.5)].min
       end
     else
-      if $args.tick_count % @move_ticks.idiv(DECCEL_MOD) == 0
+      if $args.tick_count % [@move_ticks.idiv(DECCEL_MOD), 1].max == 0
         @accel_move_ticks = [@accel_move_ticks - 1, 0].max
       end
     end
 
-    case
-    when inputs.keyboard.key_down.right then @next_direction = :right
-    when inputs.keyboard.key_down.left then @next_direction = :left
-    when inputs.keyboard.key_down.up then @next_direction = :up
-    when inputs.keyboard.key_down.down then @next_direction = :down
+    if $game.queue_dir_changes
+      case
+      when inputs.keyboard.key_down.right then @direction_queue << :right
+      when inputs.keyboard.key_down.left then @direction_queue << :left
+      when inputs.keyboard.key_down.up then @direction_queue << :up
+      when inputs.keyboard.key_down.down then @direction_queue << :down
+      end
+    else
+      case
+      when inputs.keyboard.key_down.right then @next_direction = :right
+      when inputs.keyboard.key_down.left then @next_direction = :left
+      when inputs.keyboard.key_down.up then @next_direction = :up
+      when inputs.keyboard.key_down.down then @next_direction = :down
+      end
     end
   end
 
   def handle_move
     @ticks += 1
     return unless should_move?
+    $args.outputs.sounds << 'sounds/move1.wav' if $game.sound_fx
 
-    @direction = @next_direction unless @state == :portal_enter
+    if $game.queue_dir_changes
+      @direction = @direction_queue.shift || @direction
+    else
+      @direction = @next_direction unless @state == :portal_enter
+    end
 
     if @state == :portal_enter
       @portal_length += 1 

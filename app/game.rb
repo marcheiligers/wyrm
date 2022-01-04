@@ -18,22 +18,23 @@ class Game
   # => :game_portal_enter - Level complete, entering portal
   # => :game_over - Game over menu display
   # => TODO: :win - Win menu display
+  # => :paused - Paused
   attr_reader :state, :score, :level, :gems_left
+  attr_accessor :sound_fx, :queue_dir_changes
 
   def initialize
     @state = :boot
+    @sound_fx = true
+    @queue_dir_changes = true
   end
 
   def reset
     @state = :new_game
     @animations = []
     @wyrm.reset
-    @portal.show!
     @score = 0
     @level = 0
     @gems_left = GEMS_PER_LEVEL
-
-    STARTING_CLOUDS.times { @animations << Cloud.new }
   end
 
   def tick(args)
@@ -47,11 +48,19 @@ class Game
     when :menu_rising
       handle_menu_rising
     when :game_normal
-      @wyrm.handle_input
-      @wyrm.handle_move
-      handle_collisions
-      handle_portal_exit
-      handle_gem
+      if args.inputs.keyboard.key_down.p
+        @state = :paused
+      else
+        @wyrm.handle_input
+        @wyrm.handle_move
+        handle_collisions
+        handle_portal_exit
+        handle_gem
+      end
+    when :paused
+      if args.inputs.keyboard.key_down.p
+        @state = :game_normal
+      end
     when :game_portal_enter
       @wyrm.handle_input
       @wyrm.handle_move
@@ -61,6 +70,7 @@ class Game
 
     args.outputs.background_color = [8, 32, 32]
     args.outputs.primitives << to_p
+    args.outputs.primitives << debug if DEBUG
   end
 
   def handle_boot
@@ -74,7 +84,9 @@ class Game
     reset
 
     @menu = Menu.new
-    @menu.drop!
+    @game_over = GameOver.new
+    @current_menu = @menu
+    @current_menu.drop!
 
     @map = Map.new
 
@@ -82,41 +94,49 @@ class Game
   end
 
   def handle_game_starting
-    @menu.rise!
+    @current_menu.rise!
     @map.next_level!
     @gem.move_to(*random_gem_position)
+    @portal.show!
     @state = :menu_rising
+    STARTING_CLOUDS.times { @animations << Cloud.new }
   end
 
   def handle_menu_rising
-    @state = :game_normal if @menu.finished?
-    @gem_tick = $args.tick_count
+    @state = :game_normal if @current_menu.finished?
+    @gem_ticks = 0
   end
 
   def handle_collisions
     if @wyrm.crashed_into_self?
       # we crashed into ourselves
       puts "Crashed into ourselves"
+      @current_menu = @game_over
+      @current_menu.drop!
       @state = :game_over
     elsif @map.wall?(@wyrm.logical_x, @wyrm.logical_y)
       # we crashed into a wall
       puts "Crashed into a wall"
+      @current_menu = @game_over
+      @current_menu.drop!
       @state = :game_over
     end
   end
 
   def handle_gem
+    @gem_ticks += 1
     return unless @wyrm.head == @gem.location && @gem.visible?
 
+    $args.outputs.sounds << 'sounds/gem1.wav' if $game.sound_fx
     @wyrm.grow
-    points = [POINTS[($args.easing.ease(0, $args.tick_count - @gem_tick, MAX_POINT_TICKS, :identity) * POINTS.length).round].to_i, 1].max
+    points = [POINTS[($args.easing.ease(0, @gem_ticks, MAX_POINT_TICKS, :identity) * POINTS.length).round].to_i, 1].max
     @score += points
     @animations << ScoreLabel.new(@wyrm.logical_x * GRID_SIZE, @wyrm.logical_y * GRID_SIZE, points)
     @gems_left -= 1
 
     if @gems_left > 0
       @gem.move_to(*random_gem_position)
-      @gem_tick = $args.tick_count
+      @gem_ticks = 0
     else
       @gem.hide!
       @portal.show!
@@ -143,7 +163,7 @@ class Game
         @state = :game_normal
         @wyrm.exit_portal!
         @gem.move_to(*random_gem_position)
-        @gem_tick = $args.tick_count
+        @gem_ticks = 0
         @gems_left = GEMS_PER_LEVEL
         @gem.show!
       else
@@ -153,10 +173,13 @@ class Game
   end
 
   def handle_menu
-    if $args.inputs.keyboard.key_up.space
-      reset
-      @state = :game_starting
-    end
+    @current_menu.handle_input
+    @state = @current_menu.new_state if @current_menu.new_state?
+
+    # if $args.inputs.keyboard.key_up.space
+    #   reset
+    #   @state = :game_starting
+    # end
   end
 
   def random_gem_position
@@ -170,21 +193,25 @@ class Game
 
   def to_p
     @animations.reject!(&:finished?)
-    @animations << Cloud.new(anywhere: false) if rand < CLOUD_CHANCE[@level]
-    @animations << Whisp.new(rand(600) + 20, rand(300) + 30) if rand < WHISP_CHANCE
 
     case @state
-    when :new_game, :game_starting
-      [@sky.to_p, @menu.to_p, @title_bar.to_p]
+    when :new_game, :game_starting, :game_over
+      [@sky.to_p, @current_menu.to_p, @animations.map(&:to_p), @title_bar.to_p]
     when :menu_rising
-      [@sky.to_p, @map.to_p, @wyrm.to_p, @gem.to_p, @animations.map(&:to_p), @portal.to_p, @menu.to_p, @title_bar.to_p]
-    when :game_normal
+      randoms
+      [@sky.to_p, @map.to_p, @wyrm.to_p, @gem.to_p, @animations.map(&:to_p), @portal.to_p, @current_menu.to_p, @title_bar.to_p]
+    when :game_normal, :paused
+      randoms
       [@sky.to_p, @map.to_p, @wyrm.to_p, @gem.to_p, @animations.map(&:to_p), @portal.to_p, @title_bar.to_p]
     when :game_portal_enter
+      randoms
       [@sky.to_p, @map.to_p, @wyrm.to_p, @animations.map(&:to_p), @portal.to_p, @title_bar.to_p]
-    when :game_over
-      [@sky.to_p, game_over, press_space, @title_bar.to_p]
     end
+  end
+
+  def randoms
+    @animations << Cloud.new(anywhere: false) if rand < CLOUD_CHANCE[@level]
+    @animations << Whisp.new(rand(600) + 20, rand(300) + 30) if rand < WHISP_CHANCE
   end
 
   def game_over
@@ -205,6 +232,13 @@ class Game
       h: 20 * PIXEL_MUL,
       path: 'sprites/press-space.png'
     }.sprite!
+  end
+
+  def debug
+    [].tap do |p|
+      p << { x: 1260, y: 720, text: $args.gtk.current_framerate.round.to_s, r: 255, g: 255, b: 255 }.label!
+      p << { x: 1260, y: 700, text: 'Q', r: 255, g: 255, b: 255 }.label! if @queue_dir_changes
+    end
   end
 end
 

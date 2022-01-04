@@ -1,84 +1,157 @@
-class Menu
-  include Easing
+class Menu < MenuBase
+  class Selection < Dynamic
+    def initialize
+      selection = {
+                    x: GRID_CENTER - (80.idiv(2) * PIXEL_MUL),
+                    y: 0,
+                    w: 80 * PIXEL_MUL,
+                    h: 20 * PIXEL_MUL,
+                    path: "sprites/selection.png"
+                  }.sprite!
+      super(selection)
+      select(1)
+    end    
 
-  TARGET = :menu
-  # states: hidden, dropping, visible, rising
+    def select(pos)
+      @pos = pos
+      @y = GRID_MIDDLE + (20.idiv(2) * PIXEL_MUL) - GRID_SIZE * (pos * 2 + 3)
+    end
+
+    def selected
+      @pos
+    end
+  end
+
+  class SwitchLabel < Dynamic
+    def initialize(name, y, on_off)
+      @switch = {
+                 x: GRID_CENTER - (60.idiv(2) * PIXEL_MUL),
+                 y: GRID_MIDDLE + (10.idiv(2) * PIXEL_MUL) - GRID_SIZE * y,
+                 w: 60 * PIXEL_MUL,
+                 h: 10 * PIXEL_MUL,
+                 source_y: 0,
+                 source_w: 60,
+                 source_h: 10,
+                 path: "sprites/label-#{name}.png"
+               }.sprite!
+
+      super(@switch)
+      set(on_off)
+    end    
+
+    def set(on_off)
+      @on_off = on_off
+      @switch.merge!(source_x: on_off ? 0 : 60)
+    end
+
+    def selected
+      @pos
+    end
+  end
 
   def initialize
-    @state = :hidden
-    @whisps = []
+    super('title')
+    add_static({ x: 390, y: 320, w: 512, h: 128, path: 'sprites/title.png' }.sprite!)
+    main_submenu
   end
 
-  def drop!
-    @state = :dropping
-    @start = $args.tick_count
+  def main_submenu
+    clear_dynamics
+
+    add_dynamic(Dynamic.new(label('play', 4)))
+    add_dynamic(Dynamic.new(label('options', 6)))
+    add_dynamic(Dynamic.new(label('help', 8)))
+
+    @selection = Selection.new
+    add_dynamic(@selection)
+
+    @submenu = :main
   end
 
-  def rise!
-    @state = :rising
-    @start = $args.tick_count
+  def options_submenu
+    clear_dynamics
+
+    @sound_fx = SwitchLabel.new('sound-fx', 4, $game.sound_fx)
+    add_dynamic(@sound_fx)
+    add_dynamic(Dynamic.new(label('back', 6)))
+
+    @selection = Selection.new
+    add_dynamic(@selection)
+
+    @submenu = :options
   end
 
-  def text(str, y_offset = 0, size_enum = 2, font = PRIMARY_FONT)
-    { x: GRID_CENTER, y: GRID_MIDDLE + y_offset, text: str, size_enum: size_enum,
-      alignment_enum: 1, r: 47, g: 79, b: 79, a: 255, vertical_alignment_enum: 1,
-      font: font }.label!
+  def help_submenu
+    clear_dynamics
+
+    add_dynamic(Dynamic.new(instructions))
+    add_dynamic(Dynamic.new(label('back', 8)))
+
+    @selection = Selection.new
+    add_dynamic(@selection)
+    @selection.select(3)
+
+    @submenu = :help
   end
 
-  SPLINE = [[0.34, 1.56, 0.64, 1], [1.0, 1.0,  1.0,  1.0], [1.0, 1.0,  1.0,  1.0]]
-  DROP_DURATION = 75
-  RISE_DURATION = 45
-
-  def to_p
-    @primitive ||= begin
-      rt = $args.render_target(TARGET)
-
-      # rt.primitives << { x: 75, y: 75, w: 1130, h: 570, r: 142, g: 199, b: 241, a: 200 }.solid!
-
-      rt.primitives << { x: 50, y: 450, w: 1180, h: 218, path: 'sprites/menu_top4.png' }.sprite!
-      rt.primitives << { x: 10, y: 15, w: 428, h: 428, path: 'sprites/menu_corner4.png' }.sprite!
-      rt.primitives << { x: 842, y: 15, w: 428, h: 428, path: 'sprites/menu_corner4.png', flip_horizontally: true }.sprite!
-
-      rt.primitives << { x: 390, y: 300, w: 512, h: 128, path: 'sprites/title.png' }.sprite!
-
-      rt.primitives << press_space
-
-      { x: 0, y: 0, w: 1280, h: 720, path: TARGET, source_x: 0, source_y: 0, source_w: 1280, source_h: 720 }.sprite!
-    end
-
-    @star ||= Star.new(1, 1)
-    @whisps.push Whisp.new(rand(1200) + 40, rand(600) + 60) if rand(100) > 99
-    @whisps.reject!(&:finished?)
-
-    case @state
-    when :visible
-      [@primitive.merge!(y: 0), @star.to_p, @whisps.map(&:to_p)]
-    when :dropping
-      ticks = $args.tick_count - @start
-      @state = :visible if ticks >= DROP_DURATION
-      y = (1 - ease_out_elastic(ticks, DROP_DURATION)) * 720
-      [@primitive.merge!(y: y)]
-    when :rising
-      ticks = $args.tick_count - @start
-      @state = :hidden if ticks >= RISE_DURATION
-      y = ease_in_back(ticks, RISE_DURATION) * 720
-      [@primitive.merge!(y: y)]
-    else
-      []
-    end
-  end
-
-  def finished?
-    @state == :hidden || @state == :visible
-  end
-
-  def press_space
+  def label(name, y)
     {
-      x: GRID_CENTER - (180.idiv(2) * PIXEL_MUL),
-      y: GRID_MIDDLE + (20.idiv(2) * PIXEL_MUL) - GRID_SIZE * 6,
-      w: 180 * PIXEL_MUL,
-      h: 20 * PIXEL_MUL,
-      path: 'sprites/press-space.png'
+      x: GRID_CENTER - (60.idiv(2) * PIXEL_MUL),
+      y: GRID_MIDDLE + (10.idiv(2) * PIXEL_MUL) - GRID_SIZE * y,
+      w: 60 * PIXEL_MUL,
+      h: 10 * PIXEL_MUL,
+      path: "sprites/label-#{name}.png"
     }.sprite!
+  end
+
+  def instructions
+    {
+      x: GRID_CENTER - (110.idiv(2) * PIXEL_MUL),
+      y: GRID_MIDDLE + (40.idiv(2) * PIXEL_MUL) - GRID_SIZE * 7,
+      w: 110 * PIXEL_MUL,
+      h: 40 * PIXEL_MUL,
+      path: 'sprites/instructions.png'
+    }.sprite!
+  end
+
+  def handle_input
+    case @submenu
+    when :main
+      @selection.select([@selection.selected - 1, 1].max) if $args.inputs.keyboard.key_down.up
+      @selection.select([@selection.selected + 1, 3].min) if $args.inputs.keyboard.key_down.down
+      if $args.inputs.keyboard.key_down.enter
+        case @selection.selected
+        when 1
+          @new_state = :game_starting
+        when 2
+          options_submenu
+        when 3
+          help_submenu
+        end
+      end
+    when :options
+      @selection.select(1) if $args.inputs.keyboard.key_down.up
+      @selection.select(2) if $args.inputs.keyboard.key_down.down
+      $game.queue_dir_changes = !$game.queue_dir_changes if $args.inputs.keyboard.key_down.q
+      if $args.inputs.keyboard.key_down.enter
+        case @selection.selected
+        when 1
+          $game.sound_fx = !$game.sound_fx
+          @sound_fx.set($game.sound_fx)
+        when 2
+          main_submenu
+        end
+      end
+    when :help
+      main_submenu if $args.inputs.keyboard.key_down.enter
+    end
+  end
+
+  def new_state?
+    !@new_state.nil?
+  end
+
+  def new_state
+    @new_state
   end
 end
