@@ -6,3 +6,4 @@ exceptions
 Smaug.toml
 *.aseprite
 *.cpt
+*.band

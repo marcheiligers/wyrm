@@ -24,7 +24,7 @@ class Game
 
   def initialize
     @state = :boot
-    @sound_fx = true
+    @sound_fx = false
     @queue_dir_changes = true
   end
 
@@ -41,7 +41,7 @@ class Game
     case @state
     when :boot
       handle_boot
-    when :new_game, :game_over
+    when :new_game
       handle_menu
     when :game_starting
       handle_game_starting
@@ -61,6 +61,9 @@ class Game
       if args.inputs.keyboard.key_down.p
         @state = :game_normal
       end
+    when :game_over
+      reset if $args.inputs.keyboard.key_down.truthy_keys.length > 0 && $args.tick_count - @death_ticks > 30
+      @current_menu.drop!
     when :game_portal_enter
       @wyrm.handle_input
       @wyrm.handle_move
@@ -84,13 +87,30 @@ class Game
     reset
 
     @menu = Menu.new
-    @game_over = GameOver.new
     @current_menu = @menu
     @current_menu.drop!
 
     @map = Map.new
 
     @state = :new_game
+
+    # $args.outputs.sounds << 'sounds/theme1.mp3'
+    $args.audio[:theme] = {
+      input: 'sounds/theme1.mp3',  # Filename
+      x: 0.0, y: 0.0, z: 0.0,   # Relative position to the listener, x, y, z from -1.0 to 1.0
+      gain: 0.3,                # Volume (0.0 to 1.0)
+      pitch: 1.0,               # Pitch of the sound (1.0 = original pitch)
+      paused: true,            # Set to true to pause the sound at the current playback position
+      looping: true,            # Set to true to loop the sound/music until you stop it
+    }
+  end
+
+  def music?
+    !$args.audio[:theme].paused
+  end
+
+  def music(on_off)
+    $args.audio[:theme].paused = !on_off
   end
 
   def handle_game_starting
@@ -111,15 +131,15 @@ class Game
     if @wyrm.crashed_into_self?
       # we crashed into ourselves
       puts "Crashed into ourselves"
-      @current_menu = @game_over
-      @current_menu.drop!
       @state = :game_over
+      @death_ticks = $args.tick_count
+      @current_menu.reset
     elsif @map.wall?(@wyrm.logical_x, @wyrm.logical_y)
       # we crashed into a wall
       puts "Crashed into a wall"
-      @current_menu = @game_over
-      @current_menu.drop!
       @state = :game_over
+      @death_ticks = $args.tick_count
+      @current_menu.reset
     end
   end
 
@@ -195,7 +215,7 @@ class Game
     @animations.reject!(&:finished?)
 
     case @state
-    when :new_game, :game_starting, :game_over
+    when :new_game, :game_starting
       [@sky.to_p, @current_menu.to_p, @animations.map(&:to_p), @title_bar.to_p]
     when :menu_rising
       randoms
@@ -206,6 +226,9 @@ class Game
     when :game_portal_enter
       randoms
       [@sky.to_p, @map.to_p, @wyrm.to_p, @animations.map(&:to_p), @portal.to_p, @title_bar.to_p]
+    when :game_over
+      randoms
+      [@sky.to_p, @map.to_p, @wyrm.to_p, @gem.to_p, @animations.map(&:to_p), game_over, press_space, @title_bar.to_p]
     end
   end
 

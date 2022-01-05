@@ -22,6 +22,11 @@ https://sfbgames.itch.io/chiptone
 
 ## CHANGELOG
 
+### 0.1.3 - 5 Jan 2022
+
+* Added music (and mute option)
+* Fixed game over not being able to restart bug 
+
 ### 0.1.2 - 4 Jan 2022
 
 * Added direction queuing experiment (on by default)
@@ -43,7 +48,7 @@ https://sfbgames.itch.io/chiptone
 
 - [x] Experiment with direction change queueing
 - [~] Add pause
-- [ ] Add sounds
+- [~] Add sounds
   - [x] Move
   - [x] Portal (maybe change)
   - [x] Gem (maybe change)
@@ -52,8 +57,8 @@ https://sfbgames.itch.io/chiptone
   - [ ] Win
   - [ ] New level
 - [x] Add sound mute
-- [ ] Add music
-- [ ] Add music mute
+- [~] Add music
+- [x] Add music mute
 - [ ] Add win screen
 - [ ] Add credits
 - [ ] Add menu options
@@ -61,6 +66,5 @@ https://sfbgames.itch.io/chiptone
 	- [x] Options
 	- [x] Help
 	- [ ] Credits
-- [x] Move game over to menu-like
 - [ ] Move win to menu-like
 - [ ] Icon

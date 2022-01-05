@@ -55,6 +55,10 @@ class Menu < MenuBase
     main_submenu
   end
 
+  def reset
+    @new_state = nil
+  end
+
   def main_submenu
     clear_dynamics
 
@@ -73,7 +77,9 @@ class Menu < MenuBase
 
     @sound_fx = SwitchLabel.new('sound-fx', 4, $game.sound_fx)
     add_dynamic(@sound_fx)
-    add_dynamic(Dynamic.new(label('back', 6)))
+    @music = SwitchLabel.new('music', 6, $game.music?)
+    add_dynamic(@music)
+    add_dynamic(Dynamic.new(label('back', 8)))
 
     @selection = Selection.new
     add_dynamic(@selection)
@@ -130,8 +136,8 @@ class Menu < MenuBase
         end
       end
     when :options
-      @selection.select(1) if $args.inputs.keyboard.key_down.up
-      @selection.select(2) if $args.inputs.keyboard.key_down.down
+      @selection.select([@selection.selected - 1, 1].max) if $args.inputs.keyboard.key_down.up
+      @selection.select([@selection.selected + 1, 3].min) if $args.inputs.keyboard.key_down.down
       $game.queue_dir_changes = !$game.queue_dir_changes if $args.inputs.keyboard.key_down.q
       if $args.inputs.keyboard.key_down.enter
         case @selection.selected
@@ -139,6 +145,9 @@ class Menu < MenuBase
           $game.sound_fx = !$game.sound_fx
           @sound_fx.set($game.sound_fx)
         when 2
+          $game.music(!$game.music?) 
+          @music.set($game.music?)
+        when 3
           main_submenu
         end
       end
