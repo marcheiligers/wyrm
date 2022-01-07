@@ -22,10 +22,18 @@ https://sfbgames.itch.io/chiptone
 
 ## CHANGELOG
 
+### 0.1.4 - 6 Jan 2022
+
+* Added global music and sound fx keys (M and S)
+* Updated music to make it less repetitive
+* More art work clean up
+* Remove unused files
+
 ### 0.1.3 - 5 Jan 2022
 
 * Added music (and mute option)
 * Fixed game over not being able to restart bug 
+* Added win state
 
 ### 0.1.2 - 4 Jan 2022
 
@@ -59,12 +67,11 @@ https://sfbgames.itch.io/chiptone
 - [x] Add sound mute
 - [~] Add music
 - [x] Add music mute
-- [ ] Add win screen
+- [x] Add win screen
 - [ ] Add credits
 - [ ] Add menu options
 	- [x] Play
 	- [x] Options
 	- [x] Help
 	- [ ] Credits
-- [ ] Move win to menu-like
 - [ ] Icon

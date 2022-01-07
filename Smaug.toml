@@ -3,7 +3,7 @@
 name = "wyrm"
 # The game's title. This will show up in the tile bar of your executable.
 title = "wyrm"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["Marc Heiligers"]
 icon = "metadata/icon.png"
 compile_ruby = false

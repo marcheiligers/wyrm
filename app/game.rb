@@ -13,18 +13,17 @@ class Game
   # => :new_game - Startup menu display, menu down animation
   # => :game_starting - Menu up and map appear animations start
   # => :menu_rising - Animations continue
-  # => TODO: :game_portal_exit - exiting the portal (normal game state but with partial body showing)
   # => :game_normal - Normal game play, collecting gems
   # => :game_portal_enter - Level complete, entering portal
   # => :game_over - Game over menu display
-  # => TODO: :win - Win menu display
+  # => :win - Win menu display
   # => :paused - Paused
   attr_reader :state, :score, :level, :gems_left
   attr_accessor :sound_fx, :queue_dir_changes
 
   def initialize
     @state = :boot
-    @sound_fx = false
+    @sound_fx = true
     @queue_dir_changes = true
   end
 
@@ -38,6 +37,8 @@ class Game
   end
 
   def tick(args)
+    handle_global_input
+
     case @state
     when :boot
       handle_boot
@@ -61,7 +62,7 @@ class Game
       if args.inputs.keyboard.key_down.p
         @state = :game_normal
       end
-    when :game_over
+    when :game_over, :win
       reset if $args.inputs.keyboard.key_down.truthy_keys.length > 0 && $args.tick_count - @death_ticks > 30
       @current_menu.drop!
     when :game_portal_enter
@@ -100,9 +101,18 @@ class Game
       x: 0.0, y: 0.0, z: 0.0,   # Relative position to the listener, x, y, z from -1.0 to 1.0
       gain: 0.3,                # Volume (0.0 to 1.0)
       pitch: 1.0,               # Pitch of the sound (1.0 = original pitch)
-      paused: true,            # Set to true to pause the sound at the current playback position
+      paused: false,            # Set to true to pause the sound at the current playback position
       looping: true,            # Set to true to loop the sound/music until you stop it
     }
+  end
+
+  def handle_global_input
+    music(!music?) if $args.inputs.keyboard.key_down.m
+    @sound_fx = !sound_fx? if $args.inputs.keyboard.key_down.s
+  end
+
+  def sound_fx?
+    sound_fx
   end
 
   def music?
@@ -187,7 +197,9 @@ class Game
         @gems_left = GEMS_PER_LEVEL
         @gem.show!
       else
-        # TODO: Win!
+        @state = :win
+        @death_ticks = $args.tick_count
+        @current_menu.reset
       end
     end
   end
@@ -195,11 +207,6 @@ class Game
   def handle_menu
     @current_menu.handle_input
     @state = @current_menu.new_state if @current_menu.new_state?
-
-    # if $args.inputs.keyboard.key_up.space
-    #   reset
-    #   @state = :game_starting
-    # end
   end
 
   def random_gem_position
@@ -229,6 +236,9 @@ class Game
     when :game_over
       randoms
       [@sky.to_p, @map.to_p, @wyrm.to_p, @gem.to_p, @animations.map(&:to_p), game_over, press_space, @title_bar.to_p]
+    when :win
+      randoms
+      [@sky.to_p, @map.to_p, @animations.map(&:to_p), you_win, press_space, @title_bar.to_p]
     end
   end
 
@@ -244,6 +254,16 @@ class Game
       w: 140 * PIXEL_MUL,
       h: 20 * PIXEL_MUL,
       path: 'sprites/game-over.png'
+    }.sprite!
+  end
+
+  def you_win
+    {
+      x: GRID_CENTER - (110.idiv(2) * PIXEL_MUL),
+      y: GRID_MIDDLE + (20.idiv(2) * PIXEL_MUL),
+      w: 110 * PIXEL_MUL,
+      h: 20 * PIXEL_MUL,
+      path: 'sprites/you-win.png'
     }.sprite!
   end
 

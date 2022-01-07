@@ -1,27 +1,17 @@
 class Cloud
   CLOUDS = [
-    { w: 640, h: 427 },
-    { w: 128, h: 64 },
-    { w: 64, h: 32 },
-    { w: 64, h: 32 },
-    { w: 64, h: 32 },
-    { w: 64, h: 64 },
-    { w: 64, h: 64 },
-    { w: 128, h: 64 },
-    { w: 128, h: 64 },
-    { w: 64, h: 64 },
-    { w: 64, h: 64 }
+    { w: 64, h: 64, id: 9 },
+    { w: 64, h: 64, id: 10 }
   ]
   def initialize(anywhere: true)
     @v = (rand(10) + 1) / 10
 
-    i = rand(2) + 9
+    i = rand(CLOUDS.size)
     c = CLOUDS[i]
     z = PIXEL_MUL
     x = anywhere ? (rand(1000) + 140) : -c[:w] * PIXEL_MUL
     y = rand(720) - 50
     a = rand(100) + 150
-    r = 0 # rand(360)
     flip_horizontally = rand < 0.5
     flip_vertically = rand < 0.5
 
@@ -31,8 +21,7 @@ class Cloud
       w: c[:w] * PIXEL_MUL,
       h: c[:h] * PIXEL_MUL,
       a: a,
-      path: "sprites/cloud#{i}.png",
-      angle: r,
+      path: "sprites/cloud#{c[:id]}.png",
       flip_horizontally: flip_horizontally,
       flip_vertically: flip_vertically,
       blendmode_enum: 1

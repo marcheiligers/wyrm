@@ -112,9 +112,9 @@ class Menu < MenuBase
 
   def instructions
     {
-      x: GRID_CENTER - (110.idiv(2) * PIXEL_MUL),
+      x: GRID_CENTER - (200.idiv(2) * PIXEL_MUL),
       y: GRID_MIDDLE + (40.idiv(2) * PIXEL_MUL) - GRID_SIZE * 7,
-      w: 110 * PIXEL_MUL,
+      w: 200 * PIXEL_MUL,
       h: 40 * PIXEL_MUL,
       path: 'sprites/instructions.png'
     }.sprite!
@@ -142,8 +142,8 @@ class Menu < MenuBase
       if $args.inputs.keyboard.key_down.enter
         case @selection.selected
         when 1
-          $game.sound_fx = !$game.sound_fx
-          @sound_fx.set($game.sound_fx)
+          $game.sound_fx = !$game.sound_fx?
+          @sound_fx.set($game.sound_fx?)
         when 2
           $game.music(!$game.music?) 
           @music.set($game.music?)
