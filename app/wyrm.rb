@@ -61,7 +61,7 @@ class Wyrm
 
   def handle_input
     inputs = $args.inputs
-puts inputs.keyboard.key_held.truthy_keys.inspect
+
     if inputs.keyboard.key_held.truthy_keys.length > 2 # always has [:raw_key, :char]
       if $args.tick_count % [@move_ticks.idiv(ACCEL_MOD), 1].max == 0
         @accel_move_ticks = [@accel_move_ticks + 1, @move_ticks.idiv(1.5)].min

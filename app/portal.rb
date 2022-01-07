@@ -11,7 +11,8 @@ class Portal
   end
 
   def show!
-    $args.outputs.sounds << 'sounds/portal1.wav' if $game.sound_fx
+    # eJxjYtj-UN6Uk_mMwnMGCGioP8cew8_MsJztf32ZHYORMUTwjA8qPSMSuzinDYRmWMduZNzIcKiFgREq8t4PQjO-1poiAmJIcfS9AtFM-tp_P4AYz3KdX4PoTHbD7yD6HsciHhAd53hDCCwvCTHhPwTKQ9xANwAA8_Y4kw..
+    $args.outputs.sounds << 'sounds/portal3.wav' if $game.sound_fx?
     @visible = true
   end
 

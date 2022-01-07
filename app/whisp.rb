@@ -22,7 +22,7 @@ class Whisp
   end
 
   def to_p
-    @frame += 1 if ($args.tick_count - @start_tick) % TICKS_PER_FRAME == 0
+    @frame += 1 if ($args.tick_count - @start_tick) % TICKS_PER_FRAME == 0 unless $game.paused?
 
     {
       x: @x,

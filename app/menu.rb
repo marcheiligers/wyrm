@@ -150,10 +150,13 @@ class Menu < MenuBase
         when 3
           main_submenu
         end
+        $game.write_options
       end
     when :help
       main_submenu if $args.inputs.keyboard.key_down.enter
     end
+
+    $args.outputs.sounds << 'sounds/menu1.wav' if $game.sound_fx && $args.inputs.keyboard.key_down.truthy_keys.length > 0
   end
 
   def new_state?

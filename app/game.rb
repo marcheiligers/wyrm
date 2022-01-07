@@ -49,19 +49,13 @@ class Game
     when :menu_rising
       handle_menu_rising
     when :game_normal
-      if args.inputs.keyboard.key_down.p
-        @state = :paused
-      else
-        @wyrm.handle_input
-        @wyrm.handle_move
-        handle_collisions
-        handle_portal_exit
-        handle_gem
-      end
+      @wyrm.handle_input
+      @wyrm.handle_move
+      handle_collisions
+      handle_portal_exit
+      handle_gem
     when :paused
-      if args.inputs.keyboard.key_down.p
-        @state = :game_normal
-      end
+      # part of global_input
     when :game_over, :win
       reset if $args.inputs.keyboard.key_down.truthy_keys.length > 0 && $args.tick_count - @death_ticks > 30
       @current_menu.drop!
@@ -95,7 +89,6 @@ class Game
 
     @state = :new_game
 
-    # $args.outputs.sounds << 'sounds/theme1.mp3'
     $args.audio[:theme] = {
       input: 'sounds/theme1.mp3',  # Filename
       x: 0.0, y: 0.0, z: 0.0,   # Relative position to the listener, x, y, z from -1.0 to 1.0
@@ -104,11 +97,25 @@ class Game
       paused: false,            # Set to true to pause the sound at the current playback position
       looping: true,            # Set to true to loop the sound/music until you stop it
     }
+
+    options = $gtk.parse_json_file('options.json')
+    if options
+      @sound_fx = options['sound_fx']
+      music(options['music'])
+    end
   end
 
   def handle_global_input
-    music(!music?) if $args.inputs.keyboard.key_down.m
-    @sound_fx = !sound_fx? if $args.inputs.keyboard.key_down.s
+    @state = paused? ? :game_normal : :paused if $args.inputs.keyboard.key_down.p
+
+    changed = true && music(!music?) if $args.inputs.keyboard.key_down.m
+    changed = true && @sound_fx = !sound_fx? if $args.inputs.keyboard.key_down.s
+
+    write_options if changed
+  end
+
+  def write_options
+    $gtk.write_file('options.json', "{\"music\":#{music?},\"sound_fx\":#{sound_fx?}}")
   end
 
   def sound_fx?
@@ -121,6 +128,10 @@ class Game
 
   def music(on_off)
     $args.audio[:theme].paused = !on_off
+  end
+
+  def paused?
+    @state == :paused
   end
 
   def handle_game_starting
@@ -144,12 +155,16 @@ class Game
       @state = :game_over
       @death_ticks = $args.tick_count
       @current_menu.reset
+      $args.outputs.sounds << 'sounds/crash1.wav' if $game.sound_fx
     elsif @map.wall?(@wyrm.logical_x, @wyrm.logical_y)
       # we crashed into a wall
       puts "Crashed into a wall"
       @state = :game_over
       @death_ticks = $args.tick_count
       @current_menu.reset
+      # eJxjYtj-UN6UkSNNa_snBjBoqGdgWM-gzlTB-r_-vz1jqS1EkNsYQp_xgdAzIlH5MDpNDWrIOnYj44kMh1oYGG0gIu_9IDTja60pIiCGFEffKxDNpK_99wOI8SzX-TWIzmQ3_A6i73Es4gHRcY43hMDykhAT_kOgPMQNdAMACQ04sA..
+      # louder: eJxjYtj-UN6UkSNNa_snBjBoqGdgWM-gzlTB-r_-vz1jqS1EkNsYQp_xgdAzIlH5MDpNDWrIOnYj44kMh1oYGG0gIu_9IDTja60pIiCGFEffKxDNpK_99wOI8SzX-TWIzmQ3_A6i73Es4gHRcY43hMDykhAT_kOg_P96BnoCAEYKOT0.
+      $args.outputs.sounds << 'sounds/crash1.wav' if $game.sound_fx
     end
   end
 
@@ -157,7 +172,7 @@ class Game
     @gem_ticks += 1
     return unless @wyrm.head == @gem.location && @gem.visible?
 
-    $args.outputs.sounds << 'sounds/gem1.wav' if $game.sound_fx
+    $args.outputs.sounds << 'sounds/gem2.wav' if $game.sound_fx
     @wyrm.grow
     points = [POINTS[($args.easing.ease(0, @gem_ticks, MAX_POINT_TICKS, :identity) * POINTS.length).round].to_i, 1].max
     @score += points
@@ -227,7 +242,9 @@ class Game
     when :menu_rising
       randoms
       [@sky.to_p, @map.to_p, @wyrm.to_p, @gem.to_p, @animations.map(&:to_p), @portal.to_p, @current_menu.to_p, @title_bar.to_p]
-    when :game_normal, :paused
+    when :paused
+      [@sky.to_p, @map.to_p, @wyrm.to_p, @gem.to_p, @animations.map(&:to_p), @portal.to_p, paused_text, @title_bar.to_p]
+    when :game_normal
       randoms
       [@sky.to_p, @map.to_p, @wyrm.to_p, @gem.to_p, @animations.map(&:to_p), @portal.to_p, @title_bar.to_p]
     when :game_portal_enter
@@ -274,6 +291,16 @@ class Game
       w: 180 * PIXEL_MUL,
       h: 20 * PIXEL_MUL,
       path: 'sprites/press-space.png'
+    }.sprite!
+  end
+
+  def paused_text
+    {
+      x: GRID_CENTER - (60.idiv(2) * PIXEL_MUL),
+      y: GRID_MIDDLE + (10.idiv(2) * PIXEL_MUL) - GRID_SIZE * 2,
+      w: 60 * PIXEL_MUL,
+      h: 10 * PIXEL_MUL,
+      path: 'sprites/paused.png'
     }.sprite!
   end
 

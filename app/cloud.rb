@@ -33,7 +33,7 @@ class Cloud
   end
 
   def to_p
-    @primitive[:x] += @v
+    @primitive[:x] += @v unless $game.paused?
     @primitive
   end
 end

@@ -22,6 +22,13 @@ https://sfbgames.itch.io/chiptone
 
 ## CHANGELOG
 
+### 0.1.5 - 7 Jan 2022
+
+* Added menu and crash sounds. Changed gem and portal sounds.
+* Save options
+* Finished off pause
+
+
 ### 0.1.4 - 6 Jan 2022
 
 * Added global music and sound fx keys (M and S)
@@ -55,23 +62,26 @@ https://sfbgames.itch.io/chiptone
 ## TODO
 
 - [x] Experiment with direction change queueing
-- [~] Add pause
+- [x] Add pause
 - [~] Add sounds
   - [x] Move
   - [x] Portal (maybe change)
   - [x] Gem (maybe change)
   - [ ] Whisp
-  - [ ] Crash
+  - [x] Crash
   - [ ] Win
   - [ ] New level
+  - [x] Menu
 - [x] Add sound mute
 - [~] Add music
 - [x] Add music mute
 - [x] Add win screen
 - [ ] Add credits
-- [ ] Add menu options
+- [~] Add menu options
 	- [x] Play
 	- [x] Options
 	- [x] Help
 	- [ ] Credits
+- [x] Save options
+- [ ] Save game on pause
 - [ ] Icon
