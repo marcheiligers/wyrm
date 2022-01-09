@@ -22,6 +22,16 @@ class Menu < MenuBase
     end
   end
 
+  class Animated
+    def initialize(thing)
+      @thing = thing
+    end
+
+    def to_p(dy)
+      @thing.to_p
+    end
+  end
+
   class SwitchLabel < Dynamic
     def initialize(name, y, on_off)
       @switch = {
@@ -87,17 +97,40 @@ class Menu < MenuBase
     @submenu = :options
   end
 
-  def help_submenu
+  def help_submenu_2
     clear_dynamics
 
-    add_dynamic(Dynamic.new(instructions))
+    add_dynamic(Dynamic.new(instructions1))
     add_dynamic(Dynamic.new(label('back', 8)))
 
     @selection = Selection.new
     add_dynamic(@selection)
     @selection.select(3)
 
-    @submenu = :help
+    @submenu = :help_2
+  end
+
+  def help_submenu_1
+    clear_dynamics
+
+    add_dynamic(Dynamic.new(instructions2))
+    add_dynamic(Animated.new(Gem.new(13, 7)))
+    add_dynamic(Animated.new(Portal.new(21, 3, true)))
+    add_dynamic(Animated.new(HeadSprite.new([20, 4])))
+    add_dynamic(Animated.new(WingsSprite.new([20, 4])))
+    add_dynamic(Animated.new(BodySprite.new([19, 4], :right)))
+    add_dynamic(Animated.new(BodySprite.new([18, 4], :right)))
+    add_dynamic(Animated.new(BodySprite.new([17, 4], :down)))
+    add_dynamic(Animated.new(BodySprite.new([17, 5], :right)))
+    add_dynamic(Animated.new(BodySprite.new([16, 5], :right)))
+    add_dynamic(Animated.new(BodySprite.new([15, 5], :right, true)))
+    add_dynamic(Dynamic.new(label('next', 8)))
+
+    @selection = Selection.new
+    add_dynamic(@selection)
+    @selection.select(3)
+
+    @submenu = :help_1
   end
 
   def label(name, y)
@@ -110,36 +143,61 @@ class Menu < MenuBase
     }.sprite!
   end
 
-  def instructions
+  def instructions1
     {
       x: GRID_CENTER - (200.idiv(2) * PIXEL_MUL),
       y: GRID_MIDDLE + (40.idiv(2) * PIXEL_MUL) - GRID_SIZE * 7,
       w: 200 * PIXEL_MUL,
       h: 40 * PIXEL_MUL,
+      source_x: 0,
+      source_y: 0,
+      source_w: 200,
+      source_h: 40,
+      path: 'sprites/instructions.png'
+    }.sprite!
+  end
+
+  def instructions2
+    {
+      x: GRID_CENTER - (200.idiv(2) * PIXEL_MUL),
+      y: GRID_MIDDLE + (40.idiv(2) * PIXEL_MUL) - GRID_SIZE * 7,
+      w: 200 * PIXEL_MUL,
+      h: 40 * PIXEL_MUL,
+      source_x: 200,
+      source_y: 0,
+      source_w: 200,
+      source_h: 40,
       path: 'sprites/instructions.png'
     }.sprite!
   end
 
   def handle_input
+    key_down = $args.inputs.keyboard.key_down
+    
     case @submenu
     when :main
-      @selection.select([@selection.selected - 1, 1].max) if $args.inputs.keyboard.key_down.up
-      @selection.select([@selection.selected + 1, 3].min) if $args.inputs.keyboard.key_down.down
-      if $args.inputs.keyboard.key_down.enter
+      @selection.select([@selection.selected - 1, 1].max) if key_down.up
+      @selection.select([@selection.selected + 1, 3].min) if key_down.down
+      if key_down.enter
         case @selection.selected
         when 1
           @new_state = :game_starting
         when 2
           options_submenu
         when 3
-          help_submenu
+          help_submenu_1
         end
       end
     when :options
-      @selection.select([@selection.selected - 1, 1].max) if $args.inputs.keyboard.key_down.up
-      @selection.select([@selection.selected + 1, 3].min) if $args.inputs.keyboard.key_down.down
-      $game.queue_dir_changes = !$game.queue_dir_changes if $args.inputs.keyboard.key_down.q
-      if $args.inputs.keyboard.key_down.enter
+      @selection.select([@selection.selected - 1, 1].max) if key_down.up
+      @selection.select([@selection.selected + 1, 3].min) if key_down.down
+      $game.queue_dir_changes = !$game.queue_dir_changes if key_down.q
+      $game.debug = !$game.debug if key_down.d
+      if key_down.g
+        $game.gems_per_level = ($game.gems_per_level % GEMS_PER_LEVEL) + 1
+        puts $game.gems_per_level
+      end
+      if key_down.enter
         case @selection.selected
         when 1
           $game.sound_fx = !$game.sound_fx?
@@ -152,11 +210,14 @@ class Menu < MenuBase
         end
         $game.write_options
       end
-    when :help
-      main_submenu if $args.inputs.keyboard.key_down.enter
+    when :help_1
+      help_submenu_2 if key_down.enter
+    when :help_2
+      main_submenu if key_down.enter
     end
 
-    $args.outputs.sounds << 'sounds/menu1.wav' if $game.sound_fx && $args.inputs.keyboard.key_down.truthy_keys.length > 0
+    main_submenu if key_down.escape || key_down.delete
+    $args.outputs.sounds << 'sounds/menu1.wav' if $game.sound_fx && key_down.truthy_keys.length > 0
   end
 
   def new_state?

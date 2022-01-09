@@ -19,7 +19,7 @@ class Sky
 		DAY,
 		AFTERNOON,
 		AFTERNOON,
-		NIGHT,
+		AFTERNOON,
 		NIGHT,
 		NIGHT
 	]
@@ -27,10 +27,6 @@ class Sky
 	def initialize
 		@state = :clear
 		@color = DAY
-	end
-
-	def night!
-		@color = NIGHT
 	end
 
 	def to_p

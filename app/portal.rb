@@ -2,12 +2,12 @@ class Portal
   ANIM_FRAMES = 3
   TICKS_PER_FRAME = 10
 
-  def initialize
-    @x = PORTAL_LOCATION.x
-    @y = PORTAL_LOCATION.y
+  def initialize(x = nil, y = nil, visible = false)
+    @x = x || PORTAL_LOCATION.x
+    @y = y || PORTAL_LOCATION.y
     @frame = 0 
     @start_tick = $args.tick_count
-    @visible = false
+    @visible = visible
   end
 
   def show!

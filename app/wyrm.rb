@@ -17,8 +17,9 @@ class Wyrm
   # => :portal_exit - disappearing into the portal
 
   def initialize
+    @head = HeadSprite.new
+    @wings = WingsSprite.new
     @body = Body.new(self)
-    @wings = Wings.new(self)
     @move_ticks = MAX_MOVE_TICKS # number of ticks between moves
   end
 
@@ -48,6 +49,8 @@ class Wyrm
     @logical_y = 8
     @state = :portal_exit
     @portal_length = @body.length + 1
+    @head.update(head, direction)
+    @wings.update(head, direction)
     @body.exit_portal!
   end
 
@@ -124,6 +127,9 @@ class Wyrm
     @logical_x = GRID_WIDTH - 1 if @logical_x < 0
     @logical_y = 0 if @logical_y >= GRID_HEIGHT - 1 # top row is reserved for title and score
     @logical_y = (GRID_HEIGHT - 1) - 1 if @logical_y < 0 
+    
+    @head.update(head, direction)
+    @wings.update(head, direction)
   end
 
   def should_move?
@@ -147,43 +153,19 @@ class Wyrm
   def to_p
     case state
     when :normal
-      [head_sprite, @wings.to_p, @body.to_p]
+      [@head.to_p, @wings.to_p, @body.to_p]
     when :portal_enter
       case @portal_length
-      when 0 then [head_sprite, @wings.to_p, @body.to_p]
+      when 0 then [@head.to_p, @wings.to_p, @body.to_p]
       when 1 then [@wings.to_p, @body.to_p]
       else @body.to_p([@portal_length - 2, 0].max)
       end
     when :portal_exit
       case @portal_length
-      when @body.length + 1 then [head_sprite]
-      when @body.length then [head_sprite, @wings.to_p, @body.to_p(@body.length - 1)]
-      else [head_sprite, @wings.to_p, @body.to_p(@portal_length - 1)]
+      when @body.length + 1 then [@head.to_p]
+      when @body.length then [@head.to_p, @wings.to_p, @body.to_p(@body.length - 1)]
+      else [@head.to_p, @wings.to_p, @body.to_p(@portal_length - 1)]
       end
     end
-  end
-
-  # The head sprite is 14x14 to accommodate the horns, so it's offset a little
-  def head_sprite
-    case @direction
-    when :left
-      angle = -90
-      x = @logical_x * GRID_SIZE
-      y = @logical_y * GRID_SIZE - 4
-    when :right
-      angle = 90
-      x = @logical_x * GRID_SIZE - 8
-      y = @logical_y * GRID_SIZE - 4
-    when :up
-      angle = 180
-      x = @logical_x * GRID_SIZE - 4
-      y = @logical_y * GRID_SIZE - 8
-    when :down
-      angle = 0
-      x = @logical_x * GRID_SIZE - 4
-      y = @logical_y * GRID_SIZE
-    end
-
-    { x: x, y: y, w: GRID_SIZE + 8, h: GRID_SIZE + 8, path: 'sprites/head3.png', angle: angle }.sprite!
   end
 end

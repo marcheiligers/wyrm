@@ -6,7 +6,7 @@ module Numbers
         y: y,
         w: GRID_SIZE,
         h: GRID_SIZE,
-        path: 'sprites/numbers2.png',
+        path: 'sprites/numbers3.png',
         a: a,
         source_x: (ch.ord - 48) * 10,
         source_y: 0,

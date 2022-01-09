@@ -19,12 +19,14 @@ class Game
   # => :win - Win menu display
   # => :paused - Paused
   attr_reader :state, :score, :level, :gems_left
-  attr_accessor :sound_fx, :queue_dir_changes
+  attr_accessor :sound_fx, :queue_dir_changes, :debug, :gems_per_level
 
   def initialize
     @state = :boot
     @sound_fx = true
     @queue_dir_changes = true
+    @debug = false
+    @gems_per_level = GEMS_PER_LEVEL
   end
 
   def reset
@@ -33,7 +35,7 @@ class Game
     @wyrm.reset
     @score = 0
     @level = 0
-    @gems_left = GEMS_PER_LEVEL
+    @gems_left = gems_per_level
   end
 
   def tick(args)
@@ -57,7 +59,7 @@ class Game
     when :paused
       # part of global_input
     when :game_over, :win
-      reset if $args.inputs.keyboard.key_down.truthy_keys.length > 0 && $args.tick_count - @death_ticks > 30
+      reset if $args.inputs.keyboard.key_down.enter && $args.tick_count - @death_ticks > 30
       @current_menu.drop!
     when :game_portal_enter
       @wyrm.handle_input
@@ -68,7 +70,7 @@ class Game
 
     args.outputs.background_color = [8, 32, 32]
     args.outputs.primitives << to_p
-    args.outputs.primitives << debug if DEBUG
+    args.outputs.primitives << debug_p if debug
   end
 
   def handle_boot
@@ -106,7 +108,14 @@ class Game
   end
 
   def handle_global_input
-    @state = paused? ? :game_normal : :paused if $args.inputs.keyboard.key_down.p
+    if $args.inputs.keyboard.key_down.p
+      if paused?
+        @state = @unpaused_state
+      else
+        @unpaused_state = @state
+        @state = :paused
+      end
+    end
 
     changed = true && music(!music?) if $args.inputs.keyboard.key_down.m
     changed = true && @sound_fx = !sound_fx? if $args.inputs.keyboard.key_down.s
@@ -138,6 +147,7 @@ class Game
     @current_menu.rise!
     @map.next_level!
     @gem.move_to(*random_gem_position)
+    @gems_left = gems_per_level
     @portal.show!
     @state = :menu_rising
     STARTING_CLOUDS.times { @animations << Cloud.new }
@@ -180,6 +190,7 @@ class Game
     @gems_left -= 1
 
     if @gems_left > 0
+      puts @gems_left
       @gem.move_to(*random_gem_position)
       @gem_ticks = 0
     else
@@ -209,7 +220,7 @@ class Game
         @wyrm.exit_portal!
         @gem.move_to(*random_gem_position)
         @gem_ticks = 0
-        @gems_left = GEMS_PER_LEVEL
+        @gems_left = gems_per_level
         @gem.show!
       else
         @state = :win
@@ -243,7 +254,7 @@ class Game
       randoms
       [@sky.to_p, @map.to_p, @wyrm.to_p, @gem.to_p, @animations.map(&:to_p), @portal.to_p, @current_menu.to_p, @title_bar.to_p]
     when :paused
-      [@sky.to_p, @map.to_p, @wyrm.to_p, @gem.to_p, @animations.map(&:to_p), @portal.to_p, paused_text, @title_bar.to_p]
+      [@sky.to_p, @map.to_p, @wyrm.to_p, @gem.to_p, @animations.map(&:to_p), @portal.to_p, paused_screen, @title_bar.to_p]
     when :game_normal
       randoms
       [@sky.to_p, @map.to_p, @wyrm.to_p, @gem.to_p, @animations.map(&:to_p), @portal.to_p, @title_bar.to_p]
@@ -252,10 +263,10 @@ class Game
       [@sky.to_p, @map.to_p, @wyrm.to_p, @animations.map(&:to_p), @portal.to_p, @title_bar.to_p]
     when :game_over
       randoms
-      [@sky.to_p, @map.to_p, @wyrm.to_p, @gem.to_p, @animations.map(&:to_p), game_over, press_space, @title_bar.to_p]
+      [@sky.to_p, @map.to_p, @wyrm.to_p, @gem.to_p, @animations.map(&:to_p), game_over_screen, @title_bar.to_p]
     when :win
       randoms
-      [@sky.to_p, @map.to_p, @animations.map(&:to_p), you_win, press_space, @title_bar.to_p]
+      [@sky.to_p, @map.to_p, @animations.map(&:to_p), you_win_screen, @title_bar.to_p]
     end
   end
 
@@ -264,8 +275,12 @@ class Game
     @animations << Whisp.new(rand(600) + 20, rand(300) + 30) if rand < WHISP_CHANCE
   end
 
+  def game_over_screen
+    [ overlay, game_over, press_space ]
+  end
+
   def game_over
-    {
+    @game_over ||= {
       x: GRID_CENTER - (140.idiv(2) * PIXEL_MUL),
       y: GRID_MIDDLE + (20.idiv(2) * PIXEL_MUL),
       w: 140 * PIXEL_MUL,
@@ -274,8 +289,12 @@ class Game
     }.sprite!
   end
 
+  def you_win_screen
+    [ overlay, you_win, press_space ]
+  end
+
   def you_win
-    {
+    @you_win ||= {
       x: GRID_CENTER - (110.idiv(2) * PIXEL_MUL),
       y: GRID_MIDDLE + (20.idiv(2) * PIXEL_MUL),
       w: 110 * PIXEL_MUL,
@@ -285,7 +304,7 @@ class Game
   end
 
   def press_space
-    {
+    @press_space ||= {
       x: GRID_CENTER - (180.idiv(2) * PIXEL_MUL),
       y: GRID_MIDDLE + (20.idiv(2) * PIXEL_MUL) - GRID_SIZE * 4,
       w: 180 * PIXEL_MUL,
@@ -295,7 +314,7 @@ class Game
   end
 
   def paused_text
-    {
+    @paused_text ||= {
       x: GRID_CENTER - (60.idiv(2) * PIXEL_MUL),
       y: GRID_MIDDLE + (10.idiv(2) * PIXEL_MUL) - GRID_SIZE * 2,
       w: 60 * PIXEL_MUL,
@@ -304,7 +323,24 @@ class Game
     }.sprite!
   end
 
-  def debug
+  def paused_screen
+    [ overlay, paused_text ]
+  end
+
+  def overlay
+    @overlay ||= {
+      x: 0,
+      y: 0,
+      w: 1280,
+      h: 720 - GRID_SIZE,
+      r: 0,
+      g: 0,
+      b: 0,
+      a: 100
+    }.solid!
+  end
+
+  def debug_p
     [].tap do |p|
       p << { x: 1260, y: 720, text: $args.gtk.current_framerate.round.to_s, r: 255, g: 255, b: 255 }.label!
       p << { x: 1260, y: 700, text: 'Q', r: 255, g: 255, b: 255 }.label! if @queue_dir_changes

@@ -6,28 +6,29 @@ https://www.pinclipart.com/pindetail/iRJxbJi_underline-design-and-simple-design-
 https://www.pinclipart.com/pindetail/Twbbw_scroll-design-clip-art-corner-designs-clipartfest-clipartix/
 https://easings.net
 
-Image by <a href="https://pixabay.com/users/ykman-9016214/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=image&amp;utm_content=5341640">YK Choi</a> from <a href="https://pixabay.com/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=image&amp;utm_content=5341640">Pixabay</a>
-Image by <a href="https://pixabay.com/users/95c-484762/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=image&amp;utm_content=2421760">95C</a> from <a href="https://pixabay.com/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=image&amp;utm_content=2421760">Pixabay</a>
-https://www.pngkey.com/download/u2a9o0u2o0e6e6u2_background-transparent-real-clouds-png-cumulus/
-
 
 [Finally Finish Something](https://itch.io/jam/finally-finish-something-2022) Game Jam.
 
 
-https://jalastram.itch.io/50-gui-sound-effects
-GUI Sound Effects_046 => portal1.wav
 
 https://sfbgames.itch.io/chiptone
 
 
 ## CHANGELOG
 
+### 0.1.6 - 8 Jan 2022
+
+* Replaced secondary font text
+* Added second page of Help and refactored Wyrm sprites
+* Debug off by default and `D` on Options
+* Added overlay for pause, game over and win
+* Fixed uppause bug when pausing while portal showing
+
 ### 0.1.5 - 7 Jan 2022
 
 * Added menu and crash sounds. Changed gem and portal sounds.
 * Save options
 * Finished off pause
-
 
 ### 0.1.4 - 6 Jan 2022
 

@@ -1,5 +1,3 @@
-DEBUG = true
-
 PIXEL_MUL = 4
 GRID_SIZE = 10 * PIXEL_MUL
 GRID_WIDTH = ($args.grid.w / GRID_SIZE).to_i
@@ -23,7 +21,12 @@ require 'app/menu.rb'
 require 'app/game_over.rb'
 require 'app/title_bar.rb'
 require 'app/map.rb'
+
+require 'app/head_sprite.rb'
+require 'app/wings_sprite.rb'
+require 'app/body_sprite.rb'
+
 require 'app/body.rb'
-require 'app/wings.rb'
 require 'app/wyrm.rb'
+
 require 'app/game.rb'

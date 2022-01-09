@@ -37,9 +37,9 @@ class TitleBar
 	end
 
 	def to_p
-		@gems.each_with_index { |gem, i| $game.gems_left <= GEMS_PER_LEVEL - i - 1 ? gem.light! : gem.dark! }
+		@gems.each_with_index { |gem, i| $game.gems_left <= $game.gems_per_level - i - 1 ? gem.light! : gem.dark! }
 
-		[RECT, TITLE, LEVEL, level, @gems.map(&:to_p), score]
+		[RECT, TITLE, LEVEL, level, @gems.first($game.gems_per_level).map(&:to_p), score]
 	end
 
 	def level
