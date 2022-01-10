@@ -2,8 +2,6 @@
 
 # Asset sources
 
-https://www.pinclipart.com/pindetail/iRJxbJi_underline-design-and-simple-design-hand-drawn-elements/
-https://www.pinclipart.com/pindetail/Twbbw_scroll-design-clip-art-corner-designs-clipartfest-clipartix/
 https://easings.net
 
 
@@ -15,6 +13,13 @@ https://sfbgames.itch.io/chiptone
 
 
 ## CHANGELOG
+
+### 0.1.7 - 9 Jan 2022
+
+* Added hidden move rate adjustments in Options `[`, `]`, `{`, `}` 
+* Redid menu top and corners
+* Added icon (needs work)
+* Changed morning background color and selection
 
 ### 0.1.6 - 8 Jan 2022
 

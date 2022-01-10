@@ -5,6 +5,9 @@ GRID_HEIGHT = ($args.grid.h / GRID_SIZE).to_i
 GRID_CENTER = ($args.grid.w / 2).to_i
 GRID_MIDDLE = ($args.grid.h / 2).to_i
 
+MAX_MOVE_TICKS = 30
+MIN_MOVE_TICKS = 4
+
 GEMS_PER_LEVEL = 10
 
 require 'app/easing.rb'

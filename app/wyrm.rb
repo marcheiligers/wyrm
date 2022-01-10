@@ -1,9 +1,5 @@
 class Wyrm
-  MAX_MOVE_TICKS = 30
-  MIN_MOVE_TICKS = 4
   MOVE_MAX_LENGTH = 100
-
-  PORTAL_MOVE_TICKS = 10
 
   ACCEL_MOD = 5
   DECCEL_MOD = 8
@@ -20,11 +16,11 @@ class Wyrm
     @head = HeadSprite.new
     @wings = WingsSprite.new
     @body = Body.new(self)
-    @move_ticks = MAX_MOVE_TICKS # number of ticks between moves
+    @move_ticks = $game.max_move_ticks # number of ticks between moves
   end
 
   def reset
-    @move_ticks = MAX_MOVE_TICKS # number of ticks between moves
+    @move_ticks = $game.max_move_ticks # number of ticks between moves
     @accel_move_ticks = 0 # number of ticks to subtact from @move_ticks due to acceleration
 
     @body.reset
@@ -134,9 +130,9 @@ class Wyrm
 
   def should_move?
     move_ticks = if @state == :portal_enter
-                   MIN_MOVE_TICKS
+                   $game.min_move_ticks
                  else
-                   [MIN_MOVE_TICKS, @move_ticks - @accel_move_ticks].max
+                   [$game.min_move_ticks, @move_ticks - @accel_move_ticks].max
                  end
     @ticks > move_ticks
   end
@@ -147,7 +143,7 @@ class Wyrm
   end
 
   def move_ticks
-    [((1 - $args.easing.ease(0, @body.length, MOVE_MAX_LENGTH, :quad)) * MAX_MOVE_TICKS).round, MIN_MOVE_TICKS].max
+    [((1 - $args.easing.ease(0, @body.length, MOVE_MAX_LENGTH, :quad)) * $game.max_move_ticks).round, $game.min_move_ticks].max
   end
 
   def to_p

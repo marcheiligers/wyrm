@@ -72,12 +72,12 @@ class Menu < MenuBase
   def main_submenu
     clear_dynamics
 
+    @selection = Selection.new
+    add_dynamic(@selection)
+
     add_dynamic(Dynamic.new(label('play', 4)))
     add_dynamic(Dynamic.new(label('options', 6)))
     add_dynamic(Dynamic.new(label('help', 8)))
-
-    @selection = Selection.new
-    add_dynamic(@selection)
 
     @submenu = :main
   end
@@ -85,14 +85,14 @@ class Menu < MenuBase
   def options_submenu
     clear_dynamics
 
+    @selection = Selection.new
+    add_dynamic(@selection)
+
     @sound_fx = SwitchLabel.new('sound-fx', 4, $game.sound_fx)
     add_dynamic(@sound_fx)
     @music = SwitchLabel.new('music', 6, $game.music?)
     add_dynamic(@music)
     add_dynamic(Dynamic.new(label('back', 8)))
-
-    @selection = Selection.new
-    add_dynamic(@selection)
 
     @submenu = :options
   end
@@ -100,18 +100,22 @@ class Menu < MenuBase
   def help_submenu_2
     clear_dynamics
 
-    add_dynamic(Dynamic.new(instructions1))
-    add_dynamic(Dynamic.new(label('back', 8)))
-
     @selection = Selection.new
     add_dynamic(@selection)
     @selection.select(3)
+
+    add_dynamic(Dynamic.new(instructions1))
+    add_dynamic(Dynamic.new(label('back', 8)))
 
     @submenu = :help_2
   end
 
   def help_submenu_1
     clear_dynamics
+
+    @selection = Selection.new
+    add_dynamic(@selection)
+    @selection.select(3)
 
     add_dynamic(Dynamic.new(instructions2))
     add_dynamic(Animated.new(Gem.new(13, 7)))
@@ -125,10 +129,6 @@ class Menu < MenuBase
     add_dynamic(Animated.new(BodySprite.new([16, 5], :right)))
     add_dynamic(Animated.new(BodySprite.new([15, 5], :right, true)))
     add_dynamic(Dynamic.new(label('next', 8)))
-
-    @selection = Selection.new
-    add_dynamic(@selection)
-    @selection.select(3)
 
     @submenu = :help_1
   end
@@ -191,12 +191,17 @@ class Menu < MenuBase
     when :options
       @selection.select([@selection.selected - 1, 1].max) if key_down.up
       @selection.select([@selection.selected + 1, 3].min) if key_down.down
+
+      # "Cheats"
       $game.queue_dir_changes = !$game.queue_dir_changes if key_down.q
       $game.debug = !$game.debug if key_down.d
-      if key_down.g
-        $game.gems_per_level = ($game.gems_per_level % GEMS_PER_LEVEL) + 1
-        puts $game.gems_per_level
-      end
+      $game.gems_per_level = ($game.gems_per_level % GEMS_PER_LEVEL) + 1 if key_down.g   
+      $game.max_move_ticks = [$game.max_move_ticks + 1, 60].min if key_down.close_square_brace
+      $game.max_move_ticks = [$game.max_move_ticks - 1, 1].max if key_down.open_square_brace
+      $game.min_move_ticks = [$game.min_move_ticks + 1, 60].min if key_down.close_curly_brace
+      $game.min_move_ticks = [$game.min_move_ticks - 1, 1].max if key_down.open_curly_brace
+      $game.min_move_ticks = $game.max_move_ticks if $game.min_move_ticks > $game.max_move_ticks
+
       if key_down.enter
         case @selection.selected
         when 1

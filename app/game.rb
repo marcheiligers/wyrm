@@ -19,14 +19,18 @@ class Game
   # => :win - Win menu display
   # => :paused - Paused
   attr_reader :state, :score, :level, :gems_left
-  attr_accessor :sound_fx, :queue_dir_changes, :debug, :gems_per_level
+  attr_accessor :sound_fx, :queue_dir_changes, :debug, :gems_per_level, :max_move_ticks, :min_move_ticks
 
   def initialize
     @state = :boot
     @sound_fx = true
+
     @queue_dir_changes = true
     @debug = false
     @gems_per_level = GEMS_PER_LEVEL
+
+    @max_move_ticks = MAX_MOVE_TICKS
+    @min_move_ticks = MIN_MOVE_TICKS
   end
 
   def reset
@@ -64,7 +68,7 @@ class Game
     when :game_portal_enter
       @wyrm.handle_input
       @wyrm.handle_move
-      handle_collisions unless @wyrm.state == :portal_enter
+      handle_collisions unless @wyrm.state == :portal_enter || @wyrm.state == :portal_entered
       handle_portal_enter
     end
 
@@ -149,6 +153,7 @@ class Game
     @gem.move_to(*random_gem_position)
     @gems_left = gems_per_level
     @portal.show!
+    @wyrm.reset
     @state = :menu_rising
     STARTING_CLOUDS.times { @animations << Cloud.new }
   end
@@ -344,6 +349,8 @@ class Game
     [].tap do |p|
       p << { x: 1260, y: 720, text: $args.gtk.current_framerate.round.to_s, r: 255, g: 255, b: 255 }.label!
       p << { x: 1260, y: 700, text: 'Q', r: 255, g: 255, b: 255 }.label! if @queue_dir_changes
+      p << { x: 0, y: 720, text: min_move_ticks, r: 255, g: 255, b: 255 }.label!
+      p << { x: 0, y: 700, text: max_move_ticks, r: 255, g: 255, b: 255 }.label!
     end
   end
 end

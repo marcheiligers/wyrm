@@ -61,9 +61,9 @@ class MenuBase
     @primitive ||= begin
       rt = $args.render_target(@target)
 
-      rt.primitives << { x: 50, y: 450, w: 1180, h: 218, path: 'sprites/menu_top4.png' }.sprite!
-      rt.primitives << { x: 10, y: 15, w: 428, h: 428, path: 'sprites/menu_corner4.png' }.sprite!
-      rt.primitives << { x: 842, y: 15, w: 428, h: 428, path: 'sprites/menu_corner4.png', flip_horizontally: true }.sprite!
+      rt.primitives << { x: 40, y: 11 * GRID_SIZE, w: 300 * PIXEL_MUL, h: 60 * PIXEL_MUL, path: 'sprites/menu_top5.png' }.sprite!
+      rt.primitives << { x: GRID_SIZE, y: 1 * GRID_SIZE, w: 100 * PIXEL_MUL, h: 100 * PIXEL_MUL, path: 'sprites/menu_corner5.png', flip_horizontally: true  }.sprite!
+      rt.primitives << { x: 1280 - GRID_SIZE - 100 * PIXEL_MUL, y: 1 * GRID_SIZE, w: 100 * PIXEL_MUL, h: 100 * PIXEL_MUL, path: 'sprites/menu_corner5.png'}.sprite!
 
       @static_contents.each do |item|
         rt.primitives << item

@@ -6,7 +6,7 @@ class Sky
 		h: $gtk.args.grid.h
 	}.solid!
 
-	MORNING = { r: 238, g: 230, b: 148 }
+	MORNING = { r: 197, g: 238, b: 235 }
 	DAY = { r: 115, g: 194, b: 238 }
 	AFTERNOON = { r: 90, g: 161, b: 213 }
 	NIGHT = { r: 7, g: 11, b: 51 }
