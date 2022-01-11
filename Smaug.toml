@@ -2,14 +2,14 @@
 # The name of your game's executable. This should only contain a-z, A-Z, 0-9, _ or -.
 name = "wyrm"
 # The game's title. This will show up in the tile bar of your executable.
-title = "wyrm"
-version = "0.1.0"
-authors = ["TODO: My Name <todo@example.com>"]
+title = "Wyrm"
+version = "1.0.0"
+authors = ["Marc Heiligers"]
 icon = "metadata/icon.png"
 compile_ruby = false
 
 [dragonruby]
-version = "2.23"
+version = "3.2"
 edition = "pro"
 
 [dependencies]
@@ -17,6 +17,6 @@ edition = "pro"
 [itch]
 # The Project URL you set when you created the game on Itch.io. https://my-username.itch.io/my-game.
 # This will also be the name of your build files, so fill it out even if you aren't uploading to Itch.io.
-url = "todo-change-me"
+url = "https://fascinationworks.itch.io/wyrm"
 # Your username on Itch.io.
-username = "todo-change-me"
+username = "fascinationworks"

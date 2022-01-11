@@ -1,23 +1,53 @@
 class Wyrm
-  attr_reader :logical_x, :logical_y, :length, :direction
+  MOVE_MAX_LENGTH = 100
+
+  ACCEL_MOD = 5
+  DECCEL_MOD = 8
+
+  attr_reader :logical_x, :logical_y, :direction, :state
+
+  # State 
+  # => :normal - normal game state
+  # => :portal_enter - disappearing into the portal
+  # => :portal_entered - disappeared into the portal
+  # => :portal_exit - disappearing into the portal
 
   def initialize
+    @head = HeadSprite.new
+    @wings = WingsSprite.new
     @body = Body.new(self)
-    @wings = Wings.new(self)
+    @move_ticks = $game.max_move_ticks # number of ticks between moves
   end
 
   def reset
-    @direction = :right
-    @logical_x = GRID_WIDTH / 2
-    @logical_y = GRID_HEIGHT / 2
-    @ticks = 0
-    @move_ticks = MAX_MOVE_TICKS
+    @move_ticks = $game.max_move_ticks # number of ticks between moves
+    @accel_move_ticks = 0 # number of ticks to subtact from @move_ticks due to acceleration
 
     @body.reset
+    exit_portal!
   end
 
   def head
     [@logical_x, @logical_y]
+  end
+
+  def enter_portal!
+    @state = :portal_enter
+    @portal_length = 1
+  end
+
+  def exit_portal!
+    @direction = :right
+    @next_direction = :right
+    @direction_queue = []
+    @ticks = 0
+    @logical_x = 15
+    @logical_y = 8
+    @state = :portal_exit
+    @portal_length = @body.length + 1
+    @head.update(head, direction)
+    @wings.update(head, direction)
+    @body.exit_portal!
   end
 
   def include?(pos)
@@ -31,19 +61,53 @@ class Wyrm
   def handle_input
     inputs = $args.inputs
 
-    case
-    when inputs.keyboard.key_down.right then @direction = :right
-    when inputs.keyboard.key_down.left then @direction = :left
-    when inputs.keyboard.key_down.up then @direction = :up
-    when inputs.keyboard.key_down.down then @direction = :down
+    if inputs.keyboard.key_held.truthy_keys.length > 2 # always has [:raw_key, :char]
+      if $args.tick_count % [@move_ticks.idiv(ACCEL_MOD), 1].max == 0
+        @accel_move_ticks = [@accel_move_ticks + 1, @move_ticks.idiv(1.5)].min
+      end
+    else
+      if $args.tick_count % [@move_ticks.idiv(DECCEL_MOD), 1].max == 0
+        @accel_move_ticks = [@accel_move_ticks - 1, 0].max
+      end
+    end
+
+    if $game.queue_dir_changes
+      case
+      when inputs.keyboard.key_down.right then @direction_queue << :right
+      when inputs.keyboard.key_down.left then @direction_queue << :left
+      when inputs.keyboard.key_down.up then @direction_queue << :up
+      when inputs.keyboard.key_down.down then @direction_queue << :down
+      end
+    else
+      case
+      when inputs.keyboard.key_down.right then @next_direction = :right
+      when inputs.keyboard.key_down.left then @next_direction = :left
+      when inputs.keyboard.key_down.up then @next_direction = :up
+      when inputs.keyboard.key_down.down then @next_direction = :down
+      end
     end
   end
 
   def handle_move
     @ticks += 1
-    holding = $args.inputs.keyboard.key_held.send(@direction)
-    move_ticks = holding ? MIN_MOVE_TICKS : @move_ticks
-    return unless @ticks > move_ticks
+    return unless should_move?
+    $args.outputs.sounds << 'sounds/move1.wav' if $game.sound_fx
+
+    if $game.queue_dir_changes
+      @direction = @direction_queue.shift || @direction
+    else
+      @direction = @next_direction unless @state == :portal_enter
+    end
+
+    if @state == :portal_enter
+      @portal_length += 1 
+      @state = :portal_entered if @portal_length == @body.length + 2
+    end
+
+    if @state == :portal_exit
+      @portal_length -= 1
+      @state = :normal if @portal_length == 0
+    end
 
     @ticks = 0
     @body.move
@@ -57,8 +121,20 @@ class Wyrm
 
     @logical_x = 0 if @logical_x >= GRID_WIDTH
     @logical_x = GRID_WIDTH - 1 if @logical_x < 0
-    @logical_y = 0 if @logical_y >= GRID_HEIGHT
-    @logical_y = GRID_HEIGHT - 1 if @logical_y < 0
+    @logical_y = 0 if @logical_y >= GRID_HEIGHT - 1 # top row is reserved for title and score
+    @logical_y = (GRID_HEIGHT - 1) - 1 if @logical_y < 0 
+    
+    @head.update(head, direction)
+    @wings.update(head, direction)
+  end
+
+  def should_move?
+    move_ticks = if @state == :portal_enter
+                   $game.min_move_ticks
+                 else
+                   [$game.min_move_ticks, @move_ticks - @accel_move_ticks].max
+                 end
+    @ticks > move_ticks
   end
 
   def grow
@@ -67,33 +143,25 @@ class Wyrm
   end
 
   def move_ticks
-    [((1 - $args.easing.ease(0, @length, MOVE_MAX_LENGTH, :quad)) * MAX_MOVE_TICKS).round, MIN_MOVE_TICKS].max
+    [((1 - $args.easing.ease(0, @body.length, MOVE_MAX_LENGTH, :quad)) * $game.max_move_ticks).round, $game.min_move_ticks].max
   end
 
   def to_p
-    [head_sprite, @wings.to_p, @body.to_p]
-  end
-
-  def head_sprite
-    case @direction
-    when :left
-      angle = -90
-      x = @logical_x * GRID_SIZE
-      y = @logical_y * GRID_SIZE - 4
-    when :right
-      angle = 90
-      x = @logical_x * GRID_SIZE - 8
-      y = @logical_y * GRID_SIZE - 4
-    when :up
-      angle = 180
-      x = @logical_x * GRID_SIZE - 4
-      y = @logical_y * GRID_SIZE - 8
-    when :down
-      angle = 0
-      x = @logical_x * GRID_SIZE - 4
-      y = @logical_y * GRID_SIZE
+    case state
+    when :normal
+      [@head.to_p, @wings.to_p, @body.to_p]
+    when :portal_enter
+      case @portal_length
+      when 0 then [@head.to_p, @wings.to_p, @body.to_p]
+      when 1 then [@wings.to_p, @body.to_p]
+      else @body.to_p([@portal_length - 2, 0].max)
+      end
+    when :portal_exit
+      case @portal_length
+      when @body.length + 1 then [@head.to_p]
+      when @body.length then [@head.to_p, @wings.to_p, @body.to_p(@body.length - 1)]
+      else [@head.to_p, @wings.to_p, @body.to_p(@portal_length - 1)]
+      end
     end
-
-    { x: x, y: y, w: GRID_SIZE + 8, h: GRID_SIZE + 8, path: 'sprites/head3.png', angle: angle }.sprite!
   end
 end

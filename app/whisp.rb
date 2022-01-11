@@ -1,0 +1,44 @@
+class Whisp
+  ANIM_FRAMES = 6
+  TICKS_PER_FRAME = 5
+
+#    STATE   SPRITE_FRAME    PASSAGE OF      HOW LONG   HOW MANY
+#      |          |             TIME         TO SHOW    IMAGES
+#      |          |              |           AN IMAGE   TO FLIP THROUGH
+#      |          |              |               |      |
+# state.sprite_frame =     state.tick_count.idiv(4).mod(6)
+#                                            |       |
+#                                            |       +- REMAINDER OF DIVIDE
+#                                     DIVIDE EVENLY
+#                                     (NO DECIMALS)
+
+
+  def initialize(x, y)
+    @x = x
+    @y = y
+    @frame = 0 
+    @start_tick = $args.tick_count
+    @alpha = rand(200) + 55
+  end
+
+  def to_p
+    @frame += 1 if ($args.tick_count - @start_tick) % TICKS_PER_FRAME == 0 unless $game.paused?
+
+    {
+      x: @x,
+      y: @y,
+      w: 64 * PIXEL_MUL,
+      h: 64 * PIXEL_MUL,
+      a: @alpha,
+      path: 'sprites/whisp1.png',
+      source_x: @frame * 64,
+      source_y: 0,
+      source_w: 64,
+      source_h: 64
+    }.sprite!
+  end
+
+  def finished?
+    @frame >= ANIM_FRAMES
+  end
+end

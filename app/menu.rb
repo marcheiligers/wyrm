@@ -1,75 +1,236 @@
-class Menu
-  include Easing
+class Menu < MenuBase
+  class Selection < Dynamic
+    def initialize
+      selection = {
+                    x: GRID_CENTER - (80.idiv(2) * PIXEL_MUL),
+                    y: 0,
+                    w: 80 * PIXEL_MUL,
+                    h: 20 * PIXEL_MUL,
+                    path: "sprites/selection.png"
+                  }.sprite!
+      super(selection)
+      select(1)
+    end    
 
-  TARGET = :menu
-  # states: hidden, dropping, visible, rising
+    def select(pos)
+      @pos = pos
+      @y = GRID_MIDDLE + (20.idiv(2) * PIXEL_MUL) - GRID_SIZE * (pos * 2 + 3)
+    end
+
+    def selected
+      @pos
+    end
+  end
+
+  class Animated
+    def initialize(thing)
+      @thing = thing
+    end
+
+    def to_p(dy)
+      @thing.to_p
+    end
+  end
+
+  class SwitchLabel < Dynamic
+    def initialize(name, y, on_off)
+      @switch = {
+                 x: GRID_CENTER - (60.idiv(2) * PIXEL_MUL),
+                 y: GRID_MIDDLE + (10.idiv(2) * PIXEL_MUL) - GRID_SIZE * y,
+                 w: 60 * PIXEL_MUL,
+                 h: 10 * PIXEL_MUL,
+                 source_y: 0,
+                 source_w: 60,
+                 source_h: 10,
+                 path: "sprites/label-#{name}.png"
+               }.sprite!
+
+      super(@switch)
+      set(on_off)
+    end    
+
+    def set(on_off)
+      @on_off = on_off
+      @switch.merge!(source_x: on_off ? 0 : 60)
+    end
+
+    def selected
+      @pos
+    end
+  end
 
   def initialize
-    @state = :hidden
+    super('title')
+    add_static({ x: 390, y: 320, w: 512, h: 128, path: 'sprites/title.png' }.sprite!)
+    main_submenu
   end
 
-  def drop!
-    @state = :dropping
-    @start = $args.tick_count
+  def reset
+    @new_state = nil
   end
 
-  def rise!
-    @state = :rising
-    @start = $args.tick_count
+  def main_submenu
+    clear_dynamics
+
+    @selection = Selection.new
+    add_dynamic(@selection)
+
+    add_dynamic(Dynamic.new(label('play', 4)))
+    add_dynamic(Dynamic.new(label('options', 6)))
+    add_dynamic(Dynamic.new(label('help', 8)))
+
+    @submenu = :main
   end
 
-  def text(str, y_offset = 0, size_enum = 2, font = PRIMARY_FONT)
-    { x: GRID_CENTER, y: GRID_MIDDLE + y_offset, text: str, size_enum: size_enum,
-      alignment_enum: 1, r: 47, g: 79, b: 79, a: 255, vertical_alignment_enum: 1,
-      font: font }.label!
+  def options_submenu
+    clear_dynamics
+
+    @selection = Selection.new
+    add_dynamic(@selection)
+
+    @sound_fx = SwitchLabel.new('sound-fx', 4, $game.sound_fx)
+    add_dynamic(@sound_fx)
+    @music = SwitchLabel.new('music', 6, $game.music?)
+    add_dynamic(@music)
+    add_dynamic(Dynamic.new(label('back', 8)))
+
+    @submenu = :options
   end
 
-  SPLINE = [[0.34, 1.56, 0.64, 1], [1.0, 1.0,  1.0,  1.0], [1.0, 1.0,  1.0,  1.0]]
-  DROP_DURATION = 75
-  RISE_DURATION = 45
+  def help_submenu_2
+    clear_dynamics
 
-  def to_p
-    @primitive ||= begin
-      rt = $args.render_target(TARGET)
+    @selection = Selection.new
+    add_dynamic(@selection)
+    @selection.select(3)
 
-      rt.primitives << { x: 75, y: 75, w: 1130, h: 570, r: 142, g: 199, b: 241, a: 200 }.solid!
+    add_dynamic(Dynamic.new(instructions1))
+    add_dynamic(Animated.new(HoldAnim.new))
+    add_dynamic(Dynamic.new(label('back', 8)))
 
-      rt.primitives << { x: 50, y: 500, w: 1180, h: 218, path: 'sprites/menu_top4.png' }.sprite!
-      rt.primitives << { x: 10, y: 15, w: 428, h: 428, path: 'sprites/menu_corner4.png' }.sprite!
-      rt.primitives << { x: 842, y: 15, w: 428, h: 428, path: 'sprites/menu_corner4.png', flip_horizontally: true }.sprite!
+    @submenu = :help_2
+  end
 
-      rt.primitives << { x: 390, y: 360, w: 512, h: 128, path: 'sprites/title.png' }.sprite!
+  def help_submenu_1
+    clear_dynamics
 
-      # to_play = PixelFont.new('Press [SPACE] to play', 3)
-      # rt.primitives << to_play.draw_at(640 - to_play.width / 2, 240)
+    @selection = Selection.new
+    add_dynamic(@selection)
+    @selection.select(3)
 
-      rt.primitives << [text('Press [SPACE] to play', -50, 3, SECONDARY_FONT)]
+    add_dynamic(Dynamic.new(instructions2))
+    add_dynamic(Animated.new(Gem.new(18, 7)))
+    add_dynamic(Animated.new(Portal.new(21, 3, true)))
+    add_dynamic(Animated.new(HeadSprite.new([20, 4])))
+    add_dynamic(Animated.new(WingsSprite.new([20, 4])))
+    add_dynamic(Animated.new(BodySprite.new([19, 4], :right)))
+    add_dynamic(Animated.new(BodySprite.new([18, 4], :right)))
+    add_dynamic(Animated.new(BodySprite.new([17, 4], :down)))
+    add_dynamic(Animated.new(BodySprite.new([17, 5], :right)))
+    add_dynamic(Animated.new(BodySprite.new([16, 5], :right)))
+    add_dynamic(Animated.new(BodySprite.new([15, 5], :right, true)))
+    add_dynamic(Dynamic.new(label('next', 8)))
 
-      { x: 0, y: 0, w: 1280, h: 720, path: TARGET, source_x: 0, source_y: 0, source_w: 1280, source_h: 720 }.sprite!
+    @submenu = :help_1
+  end
+
+  def label(name, y)
+    {
+      x: GRID_CENTER - (60.idiv(2) * PIXEL_MUL),
+      y: GRID_MIDDLE + (10.idiv(2) * PIXEL_MUL) - GRID_SIZE * y,
+      w: 60 * PIXEL_MUL,
+      h: 10 * PIXEL_MUL,
+      path: "sprites/label-#{name}.png"
+    }.sprite!
+  end
+
+  def instructions1
+    {
+      x: GRID_CENTER - (200.idiv(2) * PIXEL_MUL),
+      y: GRID_MIDDLE + (40.idiv(2) * PIXEL_MUL) - GRID_SIZE * 7,
+      w: 200 * PIXEL_MUL,
+      h: 40 * PIXEL_MUL,
+      source_x: 0,
+      source_y: 0,
+      source_w: 200,
+      source_h: 40,
+      path: 'sprites/instructions.png'
+    }.sprite!
+  end
+
+  def instructions2
+    {
+      x: GRID_CENTER - (200.idiv(2) * PIXEL_MUL),
+      y: GRID_MIDDLE + (40.idiv(2) * PIXEL_MUL) - GRID_SIZE * 7,
+      w: 200 * PIXEL_MUL,
+      h: 40 * PIXEL_MUL,
+      source_x: 200,
+      source_y: 0,
+      source_w: 200,
+      source_h: 40,
+      path: 'sprites/instructions.png'
+    }.sprite!
+  end
+
+  def handle_input
+    key_down = $args.inputs.keyboard.key_down
+    
+    case @submenu
+    when :main
+      @selection.select([@selection.selected - 1, 1].max) if key_down.up
+      @selection.select([@selection.selected + 1, 3].min) if key_down.down
+      if key_down.enter
+        case @selection.selected
+        when 1
+          @new_state = :game_starting
+        when 2
+          options_submenu
+        when 3
+          help_submenu_1
+        end
+      end
+    when :options
+      @selection.select([@selection.selected - 1, 1].max) if key_down.up
+      @selection.select([@selection.selected + 1, 3].min) if key_down.down
+
+      # "Cheats"
+      $game.queue_dir_changes = !$game.queue_dir_changes if key_down.q
+      $game.debug = !$game.debug if key_down.d
+      $game.gems_per_level = ($game.gems_per_level % GEMS_PER_LEVEL) + 1 if key_down.g   
+      $game.max_move_ticks = [$game.max_move_ticks + 1, 60].min if key_down.close_square_brace
+      $game.max_move_ticks = [$game.max_move_ticks - 1, 1].max if key_down.open_square_brace
+      $game.min_move_ticks = [$game.min_move_ticks + 1, 60].min if key_down.close_curly_brace
+      $game.min_move_ticks = [$game.min_move_ticks - 1, 1].max if key_down.open_curly_brace
+      $game.min_move_ticks = $game.max_move_ticks if $game.min_move_ticks > $game.max_move_ticks
+
+      if key_down.enter
+        case @selection.selected
+        when 1
+          $game.sound_fx = !$game.sound_fx?
+          @sound_fx.set($game.sound_fx?)
+        when 2
+          $game.music(!$game.music?) 
+          @music.set($game.music?)
+        when 3
+          main_submenu
+        end
+        $game.write_options
+      end
+    when :help_1
+      help_submenu_2 if key_down.enter
+    when :help_2
+      main_submenu if key_down.enter
     end
 
-    @spiral ||= { x: 592, y: 620, w: 96, h: 96, path: 'sprites/spiral.png' }.sprite!
-    @star ||= Star.new(1, 1)
-
-    case @state
-    when :visible
-      [@primitive.merge!(y: 0), @spiral.merge!(y: 620, angle: $args.tick_count % 360), @star.to_p]
-    when :dropping
-      ticks = $args.tick_count - @start
-      @state = :visible if ticks >= DROP_DURATION
-      y = (1 - ease_out_elastic(ticks, DROP_DURATION)) * 720
-      [@primitive.merge!(y: y), @spiral.merge!(y: y + 620, angle: $args.tick_count % 360)]
-    when :rising
-      ticks = $args.tick_count - @start
-      @state = :hidden if ticks >= RISE_DURATION
-      y = ease_in_back(ticks, RISE_DURATION) * 720
-      [@primitive.merge!(y: y), @spiral.merge!(y: y + 620, angle: $args.tick_count % 360)]
-    else
-      []
-    end
+    main_submenu if key_down.escape || key_down.delete
+    $args.outputs.sounds << 'sounds/menu1.wav' if $game.sound_fx && key_down.truthy_keys.length > 0
   end
 
-  def finished?
-    @state == :hidden || @state == :visible
+  def new_state?
+    !@new_state.nil?
+  end
+
+  def new_state
+    @new_state
   end
 end

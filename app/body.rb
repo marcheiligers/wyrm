@@ -1,9 +1,10 @@
 class Body
-  BODY_DEFAULTS = { w: GRID_SIZE, h: GRID_SIZE, path: 'sprites/body3.png' }
+  attr_reader :length
 
   def initialize(wyrm)
     @wyrm = wyrm
     reset
+    @tail_frame = 0
   end
 
   def reset
@@ -12,30 +13,33 @@ class Body
   end
 
   def move
-    @body << [*@wyrm.head, @wyrm.direction] if @length > 0
-    @body.shift unless @length >= @body.length
+    body_sprite = if @length > @body.length
+                    BodySprite.new(@wyrm.head, @wyrm.direction)
+                  else
+                    @body.shift.update(@wyrm.head, @wyrm.direction, false)
+                  end
+
+    @body << body_sprite
+    @body.first.tail = true
   end
 
   def grow
     @length += 1
   end
 
+  def exit_portal!
+    @body = []
+  end
+
   def include?(pos)
-    @body.any? { |part| part[0] == pos[0] && part[1] == pos[1] }
+    @body.any? { |body| body.logical_position == pos }
   end
 
-  def to_p
-    @body.map { |part| body_sprite(part) }
+  def to_p(portal_length = 0)
+    @body.first(@length - portal_length).map(&:to_p)
   end
 
-  def body_sprite(part)
-    angle = case part[2]
-            when :right then 0
-            when :up then 90
-            when :left then 180
-            when :down then 270
-            end
-
-    { x: part.x * GRID_SIZE, y: part.y * GRID_SIZE, angle: angle }.sprite!(BODY_DEFAULTS)
+  def to_s
+    @body.map(&:to_s)
   end
 end

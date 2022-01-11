@@ -1,5 +1,11 @@
 logs/
 builds/
 assets/
+fonts/
 exceptions
 Smaug.toml
+*.aseprite
+*.cpt
+*.band
+*.mp3
+options.json

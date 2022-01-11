@@ -1,38 +1,30 @@
 class Cloud
   CLOUDS = [
-    { w: 640, h: 427 },
-    { w: 128, h: 64 },
-    { w: 64, h: 32 },
-    { w: 64, h: 32 },
-    { w: 64, h: 32 },
-    { w: 64, h: 64 },
-    { w: 64, h: 64 },
-    { w: 128, h: 64 },
-    { w: 128, h: 64 }
+    { w: 64, h: 64, id: 9 },
+    { w: 64, h: 64, id: 10 }
   ]
   def initialize(anywhere: true)
     @v = (rand(10) + 1) / 10
 
-    i = rand(3) + 6
+    i = rand(CLOUDS.size)
     c = CLOUDS[i]
-    z = 2 #[2, 4].sample
-    x = anywhere ? (rand(1000) + 140) : -c[:w] * z
+    z = PIXEL_MUL
+    x = anywhere ? (rand(1000) + 140) : -c[:w] * PIXEL_MUL
     y = rand(720) - 50
-    a = rand(100) + 25
-    r = 0 # rand(360)
+    a = rand(100) + 150
     flip_horizontally = rand < 0.5
     flip_vertically = rand < 0.5
 
     @primitive = {
       x: x,
       y: y,
-      w: c[:w] * z,
-      h: c[:h] * z,
+      w: c[:w] * PIXEL_MUL,
+      h: c[:h] * PIXEL_MUL,
       a: a,
-      path: "sprites/cloud#{i}.png",
-      angle: r,
+      path: "sprites/cloud#{c[:id]}.png",
       flip_horizontally: flip_horizontally,
-      flip_vertically: flip_vertically
+      flip_vertically: flip_vertically,
+      blendmode_enum: 1
     }.sprite!
   end
 
@@ -41,7 +33,7 @@ class Cloud
   end
 
   def to_p
-    @primitive[:x] += @v
+    @primitive[:x] += @v unless $game.paused?
     @primitive
   end
 end
