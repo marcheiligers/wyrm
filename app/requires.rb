@@ -19,8 +19,11 @@ require 'app/whisp.rb'
 require 'app/sky.rb'
 require 'app/portal.rb'
 require 'app/gem.rb'
+
 require 'app/menu_base.rb'
+require 'app/hold_anim.rb'
 require 'app/menu.rb'
+
 require 'app/game_over.rb'
 require 'app/title_bar.rb'
 require 'app/map.rb'

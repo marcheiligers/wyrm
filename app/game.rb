@@ -96,7 +96,7 @@ class Game
     @state = :new_game
 
     $args.audio[:theme] = {
-      input: 'sounds/theme1.mp3',  # Filename
+      input: 'sounds/theme1.ogg',  # Filename
       x: 0.0, y: 0.0, z: 0.0,   # Relative position to the listener, x, y, z from -1.0 to 1.0
       gain: 0.3,                # Volume (0.0 to 1.0)
       pitch: 1.0,               # Pitch of the sound (1.0 = original pitch)
@@ -195,7 +195,6 @@ class Game
     @gems_left -= 1
 
     if @gems_left > 0
-      puts @gems_left
       @gem.move_to(*random_gem_position)
       @gem_ticks = 0
     else

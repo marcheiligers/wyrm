@@ -105,6 +105,7 @@ class Menu < MenuBase
     @selection.select(3)
 
     add_dynamic(Dynamic.new(instructions1))
+    add_dynamic(Animated.new(HoldAnim.new))
     add_dynamic(Dynamic.new(label('back', 8)))
 
     @submenu = :help_2
@@ -118,7 +119,7 @@ class Menu < MenuBase
     @selection.select(3)
 
     add_dynamic(Dynamic.new(instructions2))
-    add_dynamic(Animated.new(Gem.new(13, 7)))
+    add_dynamic(Animated.new(Gem.new(18, 7)))
     add_dynamic(Animated.new(Portal.new(21, 3, true)))
     add_dynamic(Animated.new(HeadSprite.new([20, 4])))
     add_dynamic(Animated.new(WingsSprite.new([20, 4])))
