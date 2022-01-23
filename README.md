@@ -8,9 +8,9 @@ Move with the cursor keys
 Hold any key to accelerate
 Press P to pause the game
 Press M to turn the music on or off
-Press S to turns the sound fx on or off
+Press S to turn the sound fx on or off
 
-This is my first published game. I wanted to finish something not overly ambitious, but something I could be proud of, with some spit and polish and not just a prototype. I learnt a ton making this game. Pixel art is hard. Bigger pixel art is harder. Music and sound effects too. Everything you add to a game ripples all the way through everything else. And yet there's an amazing, supportive, and friendly community out there, building games, sharing tools and techniques and art. I want to thank all those that helped me, that encouraged me, that gave me feedback on early versions of the game. So now I have finally shipped something. 
+This is my first published game. I wanted to finish something not overly ambitious, but something I could be proud of, with some spit and polish and not just a prototype. I learnt a ton making this game. Pixel art is hard. Bigger pixel art is harder. Music and sound effects too. Everything you add to a game ripples all the way through everything else. And yet there's an amazing, supportive, and friendly community out there, building games, sharing tools and techniques and art. I want to thank all those that helped me, that encouraged me, that gave me feedback on early versions of the game. So now I have [Finally Finished Something](https://itch.io/jam/finally-finish-something-2022/rate/1339405).
 
 This game has been submitted to the [Finally Finish Something 2022](https://itch.io/jam/finally-finish-something-2022) Game Jam. You can play it [in your browser here](https://fascinationworks.itch.io/wyrm).
 
@@ -23,6 +23,11 @@ This game has been submitted to the [Finally Finish Something 2022](https://itch
 * Art created with [Aseprite](https://www.aseprite.org/)
 
 ## CHANGELOG
+
+### 1.0.1 - 22 Jan 2022
+
+* Upgrade DragonRuby to 3.4
+* Publish Windows, Mac and Linux builds
 
 ### 1.0.0 - 10 Jan 2022
 
