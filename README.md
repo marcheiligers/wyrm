@@ -24,6 +24,10 @@ This game has been submitted to the [Finally Finish Something 2022](https://itch
 
 ## CHANGELOG
 
+### 1.0.2 - 29 Jan 2022
+
+* Disallow moving back on yourself resulting in instant game over
+
 ### 1.0.1 - 22 Jan 2022
 
 * Upgrade DragonRuby to 3.4
