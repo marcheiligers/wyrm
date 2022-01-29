@@ -6,7 +6,7 @@ class Wyrm
 
   attr_reader :logical_x, :logical_y, :direction, :state
 
-  # State 
+  # State
   # => :normal - normal game state
   # => :portal_enter - disappearing into the portal
   # => :portal_entered - disappeared into the portal
@@ -73,24 +73,40 @@ class Wyrm
 
     if $game.queue_dir_changes
       case
-      when inputs.keyboard.key_down.right then @direction_queue << :right
-      when inputs.keyboard.key_down.left then @direction_queue << :left
-      when inputs.keyboard.key_down.up then @direction_queue << :up
-      when inputs.keyboard.key_down.down then @direction_queue << :down
+      when inputs.keyboard.key_down.right then @direction_queue << :right if should_turn?(:right)
+      when inputs.keyboard.key_down.left then @direction_queue << :left if should_turn?(:left)
+      when inputs.keyboard.key_down.up then @direction_queue << :up if should_turn?(:up)
+      when inputs.keyboard.key_down.down then @direction_queue << :down if should_turn?(:down)
       end
     else
       case
-      when inputs.keyboard.key_down.right then @next_direction = :right
-      when inputs.keyboard.key_down.left then @next_direction = :left
-      when inputs.keyboard.key_down.up then @next_direction = :up
-      when inputs.keyboard.key_down.down then @next_direction = :down
+      when inputs.keyboard.key_down.right then @next_direction = :right if @direction != :left
+      when inputs.keyboard.key_down.left then @next_direction = :left if @direction != :right
+      when inputs.keyboard.key_down.up then @next_direction = :up if @direction != :down
+      when inputs.keyboard.key_down.down then @next_direction = :down if @direction != :up
       end
+    end
+  end
+
+  OPPOSITE = {
+    right: :left,
+    left: :right,
+    up: :down,
+    down: :up
+  }.freeze
+
+  def should_turn?(dir)
+    if @direction_queue.empty?
+      @direction != OPPOSITE[dir]
+    else
+      @direction_queue.last != OPPOSITE[dir]
     end
   end
 
   def handle_move
     @ticks += 1
     return unless should_move?
+
     $args.outputs.sounds << 'sounds/move1.wav' if $game.sound_fx
 
     if $game.queue_dir_changes
@@ -100,7 +116,7 @@ class Wyrm
     end
 
     if @state == :portal_enter
-      @portal_length += 1 
+      @portal_length += 1
       @state = :portal_entered if @portal_length == @body.length + 2
     end
 
@@ -122,8 +138,8 @@ class Wyrm
     @logical_x = 0 if @logical_x >= GRID_WIDTH
     @logical_x = GRID_WIDTH - 1 if @logical_x < 0
     @logical_y = 0 if @logical_y >= GRID_HEIGHT - 1 # top row is reserved for title and score
-    @logical_y = (GRID_HEIGHT - 1) - 1 if @logical_y < 0 
-    
+    @logical_y = (GRID_HEIGHT - 1) - 1 if @logical_y < 0
+
     @head.update(head, direction)
     @wings.update(head, direction)
   end
@@ -149,11 +165,11 @@ class Wyrm
   def to_p
     case state
     when :normal
-      [@head.to_p, @wings.to_p, @body.to_p]
+      [@head.to_p, @body.to_p, @wings.to_p]
     when :portal_enter
       case @portal_length
-      when 0 then [@head.to_p, @wings.to_p, @body.to_p]
-      when 1 then [@wings.to_p, @body.to_p]
+      when 0 then [@head.to_p, @body.to_p, @wings.to_p]
+      when 1 then [@body.to_p, @wings.to_p]
       else @body.to_p([@portal_length - 2, 0].max)
       end
     when :portal_exit
