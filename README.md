@@ -24,6 +24,10 @@ This game has been submitted to the [Finally Finish Something 2022](https://itch
 
 ## CHANGELOG
 
+### 1.0.3 - 30 Jan 2022
+
+* Show help screens at start of game if you haven't seen them before
+
 ### 1.0.2 - 29 Jan 2022
 
 * Disallow moving back on yourself resulting in instant game over

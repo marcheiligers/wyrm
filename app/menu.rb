@@ -2,15 +2,15 @@ class Menu < MenuBase
   class Selection < Dynamic
     def initialize
       selection = {
-                    x: GRID_CENTER - (80.idiv(2) * PIXEL_MUL),
-                    y: 0,
-                    w: 80 * PIXEL_MUL,
-                    h: 20 * PIXEL_MUL,
-                    path: "sprites/selection.png"
-                  }.sprite!
+        x: GRID_CENTER - (80.idiv(2) * PIXEL_MUL),
+        y: 0,
+        w: 80 * PIXEL_MUL,
+        h: 20 * PIXEL_MUL,
+        path: 'sprites/selection.png'
+      }.sprite!
       super(selection)
       select(1)
-    end    
+    end
 
     def select(pos)
       @pos = pos
@@ -28,26 +28,34 @@ class Menu < MenuBase
     end
 
     def to_p(dy)
-      @thing.to_p
+      if @thing.is_a?(Array)
+        @thing.to_p.map do |sprite|
+          sprite.tap { |temp| temp[:y] += dy }
+        end
+      else
+        @thing.to_p.tap do |sprite|
+          sprite[:y] += dy
+        end
+      end
     end
   end
 
   class SwitchLabel < Dynamic
     def initialize(name, y, on_off)
       @switch = {
-                 x: GRID_CENTER - (60.idiv(2) * PIXEL_MUL),
-                 y: GRID_MIDDLE + (10.idiv(2) * PIXEL_MUL) - GRID_SIZE * y,
-                 w: 60 * PIXEL_MUL,
-                 h: 10 * PIXEL_MUL,
-                 source_y: 0,
-                 source_w: 60,
-                 source_h: 10,
-                 path: "sprites/label-#{name}.png"
-               }.sprite!
+        x: GRID_CENTER - (60.idiv(2) * PIXEL_MUL),
+        y: GRID_MIDDLE + (10.idiv(2) * PIXEL_MUL) - GRID_SIZE * y,
+        w: 60 * PIXEL_MUL,
+        h: 10 * PIXEL_MUL,
+        source_y: 0,
+        source_w: 60,
+        source_h: 10,
+        path: "sprites/label-#{name}.png"
+      }.sprite!
 
       super(@switch)
       set(on_off)
-    end    
+    end
 
     def set(on_off)
       @on_off = on_off
@@ -59,14 +67,17 @@ class Menu < MenuBase
     end
   end
 
+  attr_reader :new_state
+
   def initialize
     super('title')
     add_static({ x: 390, y: 320, w: 512, h: 128, path: 'sprites/title.png' }.sprite!)
-    main_submenu
+    reset
   end
 
   def reset
     @new_state = nil
+    main_submenu
   end
 
   def main_submenu
@@ -97,28 +108,32 @@ class Menu < MenuBase
     @submenu = :options
   end
 
-  def help_submenu_2
+  def help_submenu_2(mode = :help_2)
     clear_dynamics
 
     @selection = Selection.new
     add_dynamic(@selection)
     @selection.select(3)
 
-    add_dynamic(Dynamic.new(instructions1))
+    add_dynamic(Dynamic.new(instructions_1))
     add_dynamic(Animated.new(HoldAnim.new))
-    add_dynamic(Dynamic.new(label('back', 8)))
+    if mode == :help_2
+      add_dynamic(Dynamic.new(label('back', 8)))
+    else
+      add_dynamic(Dynamic.new(label('play', 8)))
+    end
 
-    @submenu = :help_2
+    @submenu = mode
   end
 
-  def help_submenu_1
+  def help_submenu_1(mode = :help_1)
     clear_dynamics
 
     @selection = Selection.new
     add_dynamic(@selection)
     @selection.select(3)
 
-    add_dynamic(Dynamic.new(instructions2))
+    add_dynamic(Dynamic.new(instructions_2))
     add_dynamic(Animated.new(Gem.new(18, 7)))
     add_dynamic(Animated.new(Portal.new(21, 3, true)))
     add_dynamic(Animated.new(HeadSprite.new([20, 4])))
@@ -131,7 +146,11 @@ class Menu < MenuBase
     add_dynamic(Animated.new(BodySprite.new([15, 5], :right, true)))
     add_dynamic(Dynamic.new(label('next', 8)))
 
-    @submenu = :help_1
+    @submenu = mode
+  end
+
+  def show_help_before_play_1
+    help_submenu_1(:show_help_before_play_1)
   end
 
   def label(name, y)
@@ -144,7 +163,7 @@ class Menu < MenuBase
     }.sprite!
   end
 
-  def instructions1
+  def instructions_1
     {
       x: GRID_CENTER - (200.idiv(2) * PIXEL_MUL),
       y: GRID_MIDDLE + (40.idiv(2) * PIXEL_MUL) - GRID_SIZE * 7,
@@ -158,7 +177,7 @@ class Menu < MenuBase
     }.sprite!
   end
 
-  def instructions2
+  def instructions_2
     {
       x: GRID_CENTER - (200.idiv(2) * PIXEL_MUL),
       y: GRID_MIDDLE + (40.idiv(2) * PIXEL_MUL) - GRID_SIZE * 7,
@@ -174,7 +193,7 @@ class Menu < MenuBase
 
   def handle_input
     key_down = $args.inputs.keyboard.key_down
-    
+
     case @submenu
     when :main
       @selection.select([@selection.selected - 1, 1].max) if key_down.up
@@ -182,7 +201,11 @@ class Menu < MenuBase
       if key_down.enter
         case @selection.selected
         when 1
-          @new_state = :game_starting
+          if $game.seen_help?
+            @new_state = :game_starting
+          else
+            show_help_before_play_1
+          end
         when 2
           options_submenu
         when 3
@@ -196,7 +219,7 @@ class Menu < MenuBase
       # "Cheats"
       $game.queue_dir_changes = !$game.queue_dir_changes if key_down.q
       $game.debug = !$game.debug if key_down.d
-      $game.gems_per_level = ($game.gems_per_level % GEMS_PER_LEVEL) + 1 if key_down.g   
+      $game.gems_per_level = ($game.gems_per_level % GEMS_PER_LEVEL) + 1 if key_down.g
       $game.max_move_ticks = [$game.max_move_ticks + 1, 60].min if key_down.close_square_brace
       $game.max_move_ticks = [$game.max_move_ticks - 1, 1].max if key_down.open_square_brace
       $game.min_move_ticks = [$game.min_move_ticks + 1, 60].min if key_down.close_curly_brace
@@ -209,7 +232,7 @@ class Menu < MenuBase
           $game.sound_fx = !$game.sound_fx?
           @sound_fx.set($game.sound_fx?)
         when 2
-          $game.music(!$game.music?) 
+          $game.music(!$game.music?)
           @music.set($game.music?)
         when 3
           main_submenu
@@ -219,7 +242,17 @@ class Menu < MenuBase
     when :help_1
       help_submenu_2 if key_down.enter
     when :help_2
-      main_submenu if key_down.enter
+      if key_down.enter
+        $game.seen_help!
+        main_submenu
+      end
+    when :show_help_before_play_1
+      help_submenu_2(:show_help_before_play_2) if key_down.enter
+    when :show_help_before_play_2
+      if key_down.enter
+        $game.seen_help!
+        @new_state = :game_starting
+      end
     end
 
     main_submenu if key_down.escape || key_down.delete
@@ -228,9 +261,5 @@ class Menu < MenuBase
 
   def new_state?
     !@new_state.nil?
-  end
-
-  def new_state
-    @new_state
   end
 end
