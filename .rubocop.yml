@@ -28,3 +28,20 @@ Style/RedundantFileExtensionInRequire:
 
 Layout/LineLength:
   Max: 125
+
+Naming/MethodParameterName:
+  AllowedNames:
+    - x
+    - y
+    - w
+    - h
+    - dx
+    - dy
+    - a
+    - r
+
+Lint/AmbiguousOperatorPrecedence:
+  Enabled: false
+
+Naming/VariableNumber:
+  EnforcedStyle: snake_case

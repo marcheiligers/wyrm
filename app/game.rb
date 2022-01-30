@@ -18,7 +18,7 @@ class Game
   # => :game_over - Game over menu display
   # => :win - Win menu display
   # => :paused - Paused
-  attr_reader :state, :score, :level, :gems_left
+  attr_reader :state, :score, :level, :gems_left, :seen_help
   attr_accessor :sound_fx, :queue_dir_changes, :debug, :gems_per_level, :max_move_ticks, :min_move_ticks
 
   def initialize
@@ -108,6 +108,7 @@ class Game
     if options
       @sound_fx = options['sound_fx']
       music(options['music'])
+      @seen_help = options['seen_help']
     end
   end
 
@@ -127,8 +128,17 @@ class Game
     write_options if changed
   end
 
+  def seen_help!
+    @seen_help = true
+    write_options
+  end
+
+  def seen_help?
+    @seen_help
+  end
+
   def write_options
-    $gtk.write_file('options.json', "{\"music\":#{music?},\"sound_fx\":#{sound_fx?}}")
+    $gtk.write_file('options.json', "{\"music\":#{music?},\"sound_fx\":#{sound_fx?},\"seen_help\":#{seen_help?}}")
   end
 
   def sound_fx?
@@ -328,7 +338,7 @@ class Game
   end
 
   def paused_screen
-    [ overlay, paused_text ]
+    [overlay, paused_text]
   end
 
   def overlay
@@ -353,4 +363,3 @@ class Game
     end
   end
 end
-
