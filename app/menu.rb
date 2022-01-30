@@ -242,7 +242,10 @@ class Menu < MenuBase
     when :help_1
       help_submenu_2 if key_down.enter
     when :help_2
-      main_submenu if key_down.enter
+      if key_down.enter
+        $game.seen_help!
+        main_submenu
+      end
     when :show_help_before_play_1
       help_submenu_2(:show_help_before_play_2) if key_down.enter
     when :show_help_before_play_2
