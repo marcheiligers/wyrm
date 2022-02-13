@@ -24,6 +24,23 @@ This game has been submitted to the [Finally Finish Something 2022](https://itch
 
 ## CHANGELOG
 
+### 1.0.6 - 12 Feb 2022
+
+* Fixed head size and positioning
+* Adjusted portal sprite (mostly to accomodate the head)
+* Added current speed and accelerated speed to debug output
+
+### 1.0.5 - 11 Feb 2022
+
+* Updated various graphics including title and Wyrm
+* Changed timing on directions help animation so it doesn't weirdly clash with the key holding animation
+
+### 1.0.4 - 8 Feb 2022
+
+* Add `WASD` and `Space` for select in addition to arrow keys and enter
+* Changed Sound FX key to `N` since `S` is now in use for directional movement
+* Add Controller support
+
 ### 1.0.3 - 30 Jan 2022
 
 * Show help screens at start of game if you haven't seen them before

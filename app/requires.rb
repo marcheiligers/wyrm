@@ -10,6 +10,7 @@ MIN_MOVE_TICKS = 4
 
 GEMS_PER_LEVEL = 10
 
+require 'app/input_manager.rb'
 require 'app/easing.rb'
 require 'app/numbers.rb'
 require 'app/score_label.rb'
@@ -22,6 +23,7 @@ require 'app/gem.rb'
 
 require 'app/menu_base.rb'
 require 'app/hold_anim.rb'
+require 'app/direction_keys_anim.rb'
 require 'app/menu.rb'
 
 require 'app/game_over.rb'

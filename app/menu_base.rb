@@ -25,7 +25,17 @@ class MenuBase
   end
 
   def clear_dynamics
-    @dynamic_contents = []
+    @dynamic_contents = [] # [Dynamic.new(fascination_works)]
+  end
+
+  def fascination_works
+    {
+      x: 1070,
+      y: 10,
+      w: 200,
+      h: 40,
+      path: 'sprites/fascinationworks.png'
+    }.sprite!
   end
 
   def handle_input

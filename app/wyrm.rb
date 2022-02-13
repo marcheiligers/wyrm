@@ -1,10 +1,12 @@
 class Wyrm
+  include InputManager
+
   MOVE_MAX_LENGTH = 100
 
   ACCEL_MOD = 5
   DECCEL_MOD = 8
 
-  attr_reader :logical_x, :logical_y, :direction, :state
+  attr_reader :logical_x, :logical_y, :direction, :state, :move_ticks
 
   # State
   # => :normal - normal game state
@@ -59,31 +61,28 @@ class Wyrm
   end
 
   def handle_input
-    inputs = $args.inputs
-
-    if inputs.keyboard.key_held.truthy_keys.length > 2 # always has [:raw_key, :char]
+    if any_key_held? # always has [:raw_key, :char]
       if $args.tick_count % [@move_ticks.idiv(ACCEL_MOD), 1].max == 0
         @accel_move_ticks = [@accel_move_ticks + 1, @move_ticks.idiv(1.5)].min
       end
-    else
-      if $args.tick_count % [@move_ticks.idiv(DECCEL_MOD), 1].max == 0
-        @accel_move_ticks = [@accel_move_ticks - 1, 0].max
-      end
+    elsif $args.tick_count % [@move_ticks.idiv(DECCEL_MOD), 1].max == 0
+      @accel_move_ticks = [@accel_move_ticks - 1, 0].max
     end
 
+    dir = direction_down
     if $game.queue_dir_changes
-      case
-      when inputs.keyboard.key_down.right then @direction_queue << :right if should_turn?(:right)
-      when inputs.keyboard.key_down.left then @direction_queue << :left if should_turn?(:left)
-      when inputs.keyboard.key_down.up then @direction_queue << :up if should_turn?(:up)
-      when inputs.keyboard.key_down.down then @direction_queue << :down if should_turn?(:down)
+      case dir
+      when :right then @direction_queue << :right if should_turn?(:right)
+      when :left then @direction_queue << :left if should_turn?(:left)
+      when :up then @direction_queue << :up if should_turn?(:up)
+      when :down then @direction_queue << :down if should_turn?(:down)
       end
     else
-      case
-      when inputs.keyboard.key_down.right then @next_direction = :right if @direction != :left
-      when inputs.keyboard.key_down.left then @next_direction = :left if @direction != :right
-      when inputs.keyboard.key_down.up then @next_direction = :up if @direction != :down
-      when inputs.keyboard.key_down.down then @next_direction = :down if @direction != :up
+      case dir
+      when :right then @next_direction = :right if @direction != :left
+      when :left then @next_direction = :left if @direction != :right
+      when :up then @next_direction = :up if @direction != :down
+      when :down then @next_direction = :down if @direction != :up
       end
     end
   end
@@ -148,35 +147,39 @@ class Wyrm
     move_ticks = if @state == :portal_enter
                    $game.min_move_ticks
                  else
-                   [$game.min_move_ticks, @move_ticks - @accel_move_ticks].max
+                   current_move_ticks
                  end
     @ticks > move_ticks
   end
 
   def grow
     @body.grow
-    @move_ticks = move_ticks
+    @move_ticks = calc_move_ticks
   end
 
-  def move_ticks
+  def current_move_ticks
+    [$game.min_move_ticks, @move_ticks - @accel_move_ticks].max
+  end
+
+  def calc_move_ticks
     [((1 - $args.easing.ease(0, @body.length, MOVE_MAX_LENGTH, :quad)) * $game.max_move_ticks).round, $game.min_move_ticks].max
   end
 
   def to_p
     case state
     when :normal
-      [@head.to_p, @body.to_p, @wings.to_p]
+      [@body.to_p, @wings.to_p, @head.to_p]
     when :portal_enter
       case @portal_length
-      when 0 then [@head.to_p, @body.to_p, @wings.to_p]
+      when 0 then [@body.to_p, @wings.to_p, @head.to_p]
       when 1 then [@body.to_p, @wings.to_p]
       else @body.to_p([@portal_length - 2, 0].max)
       end
     when :portal_exit
       case @portal_length
       when @body.length + 1 then [@head.to_p]
-      when @body.length then [@head.to_p, @wings.to_p, @body.to_p(@body.length - 1)]
-      else [@head.to_p, @wings.to_p, @body.to_p(@portal_length - 1)]
+      when @body.length then [@wings.to_p, @body.to_p(@body.length - 1), @head.to_p]
+      else [@wings.to_p, @body.to_p(@portal_length - 1), @head.to_p]
       end
     end
   end

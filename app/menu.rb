@@ -69,6 +69,8 @@ class Menu < MenuBase
 
   attr_reader :new_state
 
+  include InputManager
+
   def initialize
     super('title')
     add_static({ x: 390, y: 320, w: 512, h: 128, path: 'sprites/title.png' }.sprite!)
@@ -117,6 +119,7 @@ class Menu < MenuBase
 
     add_dynamic(Dynamic.new(instructions_1))
     add_dynamic(Animated.new(HoldAnim.new))
+    add_dynamic(Animated.new(DirectionKeysAnim.new))
     if mode == :help_2
       add_dynamic(Dynamic.new(label('back', 8)))
     else
@@ -192,13 +195,14 @@ class Menu < MenuBase
   end
 
   def handle_input
-    key_down = $args.inputs.keyboard.key_down
+    dir = direction_down
+    accept = accept?
 
     case @submenu
     when :main
-      @selection.select([@selection.selected - 1, 1].max) if key_down.up
-      @selection.select([@selection.selected + 1, 3].min) if key_down.down
-      if key_down.enter
+      @selection.select([@selection.selected - 1, 1].max) if dir == :up
+      @selection.select([@selection.selected + 1, 3].min) if dir == :down
+      if accept
         case @selection.selected
         when 1
           if $game.seen_help?
@@ -213,10 +217,11 @@ class Menu < MenuBase
         end
       end
     when :options
-      @selection.select([@selection.selected - 1, 1].max) if key_down.up
-      @selection.select([@selection.selected + 1, 3].min) if key_down.down
+      @selection.select([@selection.selected - 1, 1].max) if dir == :up
+      @selection.select([@selection.selected + 1, 3].min) if dir == :down
 
       # "Cheats"
+      key_down = $args.inputs.keyboard.key_down
       $game.queue_dir_changes = !$game.queue_dir_changes if key_down.q
       $game.debug = !$game.debug if key_down.d
       $game.gems_per_level = ($game.gems_per_level % GEMS_PER_LEVEL) + 1 if key_down.g
@@ -226,7 +231,7 @@ class Menu < MenuBase
       $game.min_move_ticks = [$game.min_move_ticks - 1, 1].max if key_down.open_curly_brace
       $game.min_move_ticks = $game.max_move_ticks if $game.min_move_ticks > $game.max_move_ticks
 
-      if key_down.enter
+      if accept
         case @selection.selected
         when 1
           $game.sound_fx = !$game.sound_fx?
@@ -240,23 +245,23 @@ class Menu < MenuBase
         $game.write_options
       end
     when :help_1
-      help_submenu_2 if key_down.enter
+      help_submenu_2 if accept
     when :help_2
-      if key_down.enter
+      if accept
         $game.seen_help!
         main_submenu
       end
     when :show_help_before_play_1
-      help_submenu_2(:show_help_before_play_2) if key_down.enter
+      help_submenu_2(:show_help_before_play_2) if accept
     when :show_help_before_play_2
-      if key_down.enter
+      if accept
         $game.seen_help!
         @new_state = :game_starting
       end
     end
 
-    main_submenu if key_down.escape || key_down.delete
-    $args.outputs.sounds << 'sounds/menu1.wav' if $game.sound_fx && key_down.truthy_keys.length > 0
+    main_submenu if reject?
+    $args.outputs.sounds << 'sounds/menu1.wav' if $game.sound_fx && (dir || accept)
   end
 
   def new_state?
