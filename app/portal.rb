@@ -38,7 +38,7 @@ class Portal
       y: @y * GRID_SIZE,
       w: 30 * PIXEL_MUL,
       h: 30 * PIXEL_MUL,
-      path: 'sprites/portal3.png',
+      path: 'sprites/portal4.png',
       source_x: @frame * 30,
       source_y: 0,
       source_w: 30,

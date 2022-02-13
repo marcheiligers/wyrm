@@ -7,6 +7,8 @@ STARTING_CLOUDS = 3
 
 PORTAL_LOCATION = [14, 7]
 
+PAUSABLE_STATES = %i[paused game_normal game_portal_enter].freeze
+
 class Game
   # States:
   # => :boot - Game has just started up
@@ -20,6 +22,8 @@ class Game
   # => :paused - Paused
   attr_reader :state, :score, :level, :gems_left, :seen_help
   attr_accessor :sound_fx, :queue_dir_changes, :debug, :gems_per_level, :max_move_ticks, :min_move_ticks
+
+  include InputManager
 
   def initialize
     @state = :boot
@@ -63,7 +67,7 @@ class Game
     when :paused
       # part of global_input
     when :game_over, :win
-      reset if $args.inputs.keyboard.key_down.enter && $args.tick_count - @death_ticks > 30
+      reset if accept? && $args.tick_count - @death_ticks > 30
       @current_menu.drop!
     when :game_portal_enter
       @wyrm.handle_input
@@ -96,24 +100,24 @@ class Game
     @state = :new_game
 
     $args.audio[:theme] = {
-      input: 'sounds/theme1.ogg',  # Filename
-      x: 0.0, y: 0.0, z: 0.0,   # Relative position to the listener, x, y, z from -1.0 to 1.0
-      gain: 0.3,                # Volume (0.0 to 1.0)
-      pitch: 1.0,               # Pitch of the sound (1.0 = original pitch)
-      paused: false,            # Set to true to pause the sound at the current playback position
-      looping: true,            # Set to true to loop the sound/music until you stop it
+      input: 'sounds/theme1.ogg', # Filename
+      x: 0.0, y: 0.0, z: 0.0,     # Relative position to the listener, x, y, z from -1.0 to 1.0
+      gain: 0.3,                  # Volume (0.0 to 1.0)
+      pitch: 1.0,                 # Pitch of the sound (1.0 = original pitch)
+      paused: false,              # Set to true to pause the sound at the current playback position
+      looping: true               # Set to true to loop the sound/music until you stop it
     }
 
     options = $gtk.parse_json_file('options.json')
-    if options
-      @sound_fx = options['sound_fx']
-      music(options['music'])
-      @seen_help = options['seen_help']
-    end
+    return unless options
+
+    @sound_fx = options['sound_fx']
+    music(options['music'])
+    @seen_help = options['seen_help']
   end
 
   def handle_global_input
-    if $args.inputs.keyboard.key_down.p
+    if PAUSABLE_STATES.include?(@state) && ($args.inputs.keyboard.key_down.p || $args.controller_one.key_down.start)
       if paused?
         @state = @unpaused_state
       else
@@ -123,7 +127,7 @@ class Game
     end
 
     changed = true && music(!music?) if $args.inputs.keyboard.key_down.m
-    changed = true && @sound_fx = !sound_fx? if $args.inputs.keyboard.key_down.s
+    changed = true && @sound_fx = !sound_fx? if $args.inputs.keyboard.key_down.n
 
     write_options if changed
   end
@@ -329,9 +333,9 @@ class Game
 
   def paused_text
     @paused_text ||= {
-      x: GRID_CENTER - (60.idiv(2) * PIXEL_MUL),
+      x: GRID_CENTER - (80.idiv(2) * PIXEL_MUL),
       y: GRID_MIDDLE + (10.idiv(2) * PIXEL_MUL) - GRID_SIZE * 2,
-      w: 60 * PIXEL_MUL,
+      w: 80 * PIXEL_MUL,
       h: 10 * PIXEL_MUL,
       path: 'sprites/paused.png'
     }.sprite!
@@ -360,6 +364,8 @@ class Game
       p << { x: 1260, y: 700, text: 'Q', r: 255, g: 255, b: 255 }.label! if @queue_dir_changes
       p << { x: 0, y: 720, text: min_move_ticks, r: 255, g: 255, b: 255 }.label!
       p << { x: 0, y: 700, text: max_move_ticks, r: 255, g: 255, b: 255 }.label!
+      p << { x: 20, y: 720, text: @wyrm.move_ticks, r: 255, g: 255, b: 255 }.label!
+      p << { x: 20, y: 700, text: @wyrm.current_move_ticks, r: 255, g: 255, b: 255 }.label!
     end
   end
 end

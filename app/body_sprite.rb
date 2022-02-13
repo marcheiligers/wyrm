@@ -1,7 +1,7 @@
 class BodySprite
   BODY_DEFAULTS = { w: GRID_SIZE, h: GRID_SIZE, path: 'sprites/body3.png' }
-  TAIL_DEFAULTS = { 
-    w: GRID_SIZE, 
+  TAIL_DEFAULTS = {
+    w: GRID_SIZE,
     h: GRID_SIZE, path: 'sprites/tail1.png',
     source_y: 0,
     source_w: 10,
@@ -13,12 +13,12 @@ class BodySprite
 
   attr_accessor :logical_x, :logical_y, :direction, :tail
 
-	def initialize(pos, dir, tail = false)
+  def initialize(pos, dir, tail = false)
     @logical_x = pos.x
     @logical_y = pos.y
-		@direction = dir
+    @direction = dir
     @tail = tail
-	end
+  end
 
   def tail?
     tail
@@ -58,11 +58,11 @@ class BodySprite
   def tail_p(angle)
     frame = $args.tick_count.idiv(TICKS_PER_FRAME) % TOTAL_FRAMES
 
-    { 
-      x: logical_x * GRID_SIZE, 
+    {
+      x: logical_x * GRID_SIZE,
       y: logical_y * GRID_SIZE,
       source_x: TAIL_FRAMES[frame] * 10,
-      angle: angle 
+      angle: angle
     }.sprite!(TAIL_DEFAULTS)
   end
 end
