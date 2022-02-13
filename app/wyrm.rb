@@ -98,7 +98,7 @@ class Wyrm
     if @direction_queue.empty?
       @direction != OPPOSITE[dir]
     else
-      @direction_queue.last != OPPOSITE[dir]
+      @direction_queue.last != dir && @direction_queue.last != OPPOSITE[dir]
     end
   end
 
