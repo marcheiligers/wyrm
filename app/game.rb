@@ -21,7 +21,9 @@ class Game
   # => :win - Win menu display
   # => :paused - Paused
   attr_reader :state, :score, :level, :gems_left, :seen_help
-  attr_accessor :sound_fx, :queue_dir_changes, :debug, :gems_per_level, :max_move_ticks, :min_move_ticks
+  attr_accessor :sound_fx, :queue_dir_changes, :debug, :gems_per_level,
+                :max_move_ticks, :min_move_ticks, :high_score, :high_level,
+                :starting_level
 
   include InputManager
 
@@ -35,6 +37,10 @@ class Game
 
     @max_move_ticks = MAX_MOVE_TICKS
     @min_move_ticks = MIN_MOVE_TICKS
+
+    @high_score = 0
+    @high_level = 0
+    @starting_level = 0
   end
 
   def reset
@@ -114,6 +120,9 @@ class Game
     @sound_fx = options['sound_fx']
     music(options['music'])
     @seen_help = options['seen_help']
+    @high_score = options['high_score'].to_i
+    @high_level = options['high_level'].to_i
+    @starting_level = options['starting_level'].to_i
   end
 
   def handle_global_input
@@ -142,7 +151,19 @@ class Game
   end
 
   def write_options
-    $gtk.write_file('options.json', "{\"music\":#{music?},\"sound_fx\":#{sound_fx?},\"seen_help\":#{seen_help?}}")
+    data = [
+      json_string('music', music?),
+      json_string('sound_fx', sound_fx?),
+      json_string('seen_help', seen_help?),
+      json_string('high_score', high_score),
+      json_string('high_level', high_level),
+      json_string('starting_level', starting_level)
+    ].join(',')
+    $gtk.write_file('options.json', "{#{data}}")
+  end
+
+  def json_string(key, val)
+    "\"#{key}\":#{val}"
   end
 
   def sound_fx?
@@ -162,6 +183,7 @@ class Game
   end
 
   def handle_game_starting
+    @level = @starting_level
     @current_menu.rise!
     @map.next_level!
     @gem.move_to(*random_gem_position)
@@ -169,6 +191,7 @@ class Game
     @portal.show!
     @wyrm.reset
     @state = :menu_rising
+    write_options
     STARTING_CLOUDS.times { @animations << Cloud.new }
   end
 
@@ -185,6 +208,9 @@ class Game
       @death_ticks = $args.tick_count
       @current_menu.reset
       $args.outputs.sounds << 'sounds/crash1.wav' if $game.sound_fx
+      @high_score = @score if @score > @high_score
+      @high_level = @level if @level > @high_level
+      write_options
     elsif @map.wall?(@wyrm.logical_x, @wyrm.logical_y)
       # we crashed into a wall
       puts "Crashed into a wall"
@@ -194,6 +220,9 @@ class Game
       # eJxjYtj-UN6UkSNNa_snBjBoqGdgWM-gzlTB-r_-vz1jqS1EkNsYQp_xgdAzIlH5MDpNDWrIOnYj44kMh1oYGG0gIu_9IDTja60pIiCGFEffKxDNpK_99wOI8SzX-TWIzmQ3_A6i73Es4gHRcY43hMDykhAT_kOgPMQNdAMACQ04sA..
       # louder: eJxjYtj-UN6UkSNNa_snBjBoqGdgWM-gzlTB-r_-vz1jqS1EkNsYQp_xgdAzIlH5MDpNDWrIOnYj44kMh1oYGG0gIu_9IDTja60pIiCGFEffKxDNpK_99wOI8SzX-TWIzmQ3_A6i73Es4gHRcY43hMDykhAT_kOg_P96BnoCAEYKOT0.
       $args.outputs.sounds << 'sounds/crash1.wav' if $game.sound_fx
+      @high_score = @score if @score > @high_score
+      @high_level = @level if @level > @high_level
+      write_options
     end
   end
 
@@ -244,6 +273,9 @@ class Game
         @state = :win
         @death_ticks = $args.tick_count
         @current_menu.reset
+        @high_score = @score if @score > @high_score
+        @high_level = @level if @level > @high_level
+        write_options
       end
     end
   end

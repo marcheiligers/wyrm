@@ -8,10 +8,9 @@ module InputManager
   }.freeze
 
   def direction_down
-    dir = DIRECTIONS.detect { |sym| $args.keyboard.key_down.send(sym) }
-    dir ||= WASD_DIRECTIONS.detect { |_key, sym| $args.keyboard.key_down.send(sym) }&.first
-    dir ||= DIRECTIONS.detect { |sym| $args.controller_one.key_down.send(sym) }
-    dir
+    DIRECTIONS.detect { |sym| $args.keyboard.key_down.send(sym) } ||
+      WASD_DIRECTIONS.detect { |_key, sym| $args.keyboard.key_down.send(sym) }&.first ||
+      DIRECTIONS.detect { |sym| $args.controller_one.key_down.send(sym) }
   end
 
   def accept?
