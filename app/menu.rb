@@ -22,6 +22,14 @@ class Menu < MenuBase
     end
   end
 
+  class StartLevel
+    include Numbers
+
+    def to_p(dy)
+      draw_number(GRID_CENTER + GRID_SIZE * 2, GRID_MIDDLE - GRID_SIZE * 5 + dy, ($game.starting_level + 1).to_s)
+    end
+  end
+
   class Animated
     def initialize(thing)
       @thing = thing
@@ -156,6 +164,23 @@ class Menu < MenuBase
     help_submenu_1(:show_help_before_play_1)
   end
 
+  def show_level_select
+    clear_dynamics
+
+    @selection = Selection.new
+    add_dynamic(@selection)
+    @selection.select(3)
+
+    add_dynamic(Dynamic.new(levels))
+    add_dynamic(Dynamic.new(left_key))
+    add_dynamic(Dynamic.new(right_key))
+    add_dynamic(Dynamic.new(level_text))
+    add_dynamic(StartLevel.new)
+    add_dynamic(Dynamic.new(label('play', 8)))
+
+    @submenu = :level_select
+  end
+
   def label(name, y)
     {
       x: GRID_CENTER - (60.idiv(2) * PIXEL_MUL),
@@ -194,6 +219,60 @@ class Menu < MenuBase
     }.sprite!
   end
 
+  def levels
+    width = ($game.high_level + 1) * 10
+
+    {
+      x: GRID_CENTER - (width * PIXEL_MUL).idiv(2),
+      y: GRID_MIDDLE - GRID_SIZE * 3,
+      w: width * PIXEL_MUL,
+      h: 10 * PIXEL_MUL,
+      source_x: 0,
+      source_y: 0,
+      source_w: width,
+      source_h: 10,
+      path: 'sprites/number_keys.png'
+    }.sprite!
+  end
+
+  def left_key
+    {
+      x: GRID_CENTER - GRID_SIZE * 5,
+      y: GRID_MIDDLE - GRID_SIZE * 5,
+      w: 10 * PIXEL_MUL,
+      h: 10 * PIXEL_MUL,
+      source_x: 100,
+      source_y: 0,
+      source_w: 10,
+      source_h: 10,
+      path: 'sprites/number_keys.png'
+    }.sprite!
+  end
+
+  def right_key
+    {
+      x: GRID_CENTER + GRID_SIZE * 4,
+      y: GRID_MIDDLE - GRID_SIZE * 5,
+      w: 10 * PIXEL_MUL,
+      h: 10 * PIXEL_MUL,
+      source_x: 110,
+      source_y: 0,
+      source_w: 10,
+      source_h: 10,
+      path: 'sprites/number_keys.png'
+    }.sprite!
+  end
+
+  def level_text
+    {
+      x: GRID_CENTER - GRID_SIZE * 3,
+      y: GRID_MIDDLE - GRID_SIZE * 5,
+      w: GRID_SIZE * 4,
+      h: GRID_SIZE,
+      path: 'sprites/level.png'
+    }.sprite!
+  end
+
   def handle_input
     dir = direction_down
     accept = accept?
@@ -206,7 +285,11 @@ class Menu < MenuBase
         case @selection.selected
         when 1
           if $game.seen_help?
-            @new_state = :game_starting
+            if $game.high_level > 0
+              show_level_select
+            else
+              @new_state = :game_starting
+            end
           else
             show_help_before_play_1
           end
@@ -258,6 +341,20 @@ class Menu < MenuBase
         $game.seen_help!
         @new_state = :game_starting
       end
+    when :level_select
+      $game.starting_level = [$game.starting_level + 1, $game.high_level].min if dir == :right
+      $game.starting_level = [$game.starting_level - 1, 0].max if dir == :left
+      $game.starting_level = 0 if $args.keyboard.key_down.one && $game.high_level >= 0
+      $game.starting_level = 1 if $args.keyboard.key_down.two && $game.high_level >= 1
+      $game.starting_level = 2 if $args.keyboard.key_down.three && $game.high_level >= 2
+      $game.starting_level = 3 if $args.keyboard.key_down.four && $game.high_level >= 3
+      $game.starting_level = 4 if $args.keyboard.key_down.five && $game.high_level >= 4
+      $game.starting_level = 5 if $args.keyboard.key_down.six && $game.high_level >= 5
+      $game.starting_level = 6 if $args.keyboard.key_down.seven && $game.high_level >= 6
+      $game.starting_level = 7 if $args.keyboard.key_down.eight && $game.high_level >= 7
+      $game.starting_level = 8 if $args.keyboard.key_down.nine && $game.high_level >= 8
+      $game.starting_level = 9 if $args.keyboard.key_down.zero && $game.high_level >= 9
+      @new_state = :game_starting if accept
     end
 
     main_submenu if reject?

@@ -4,11 +4,12 @@ Snake reimagined as ... a Dragon.
 
 Maneuver the Wyrm through the sky, collecting magic coins to open portals which will take you to the next level. With each coin you're one step closer to the end, but you also get longer and faster. Avoid walls and avoid hitting yourself or else you'll have to start over. There are 10 levels. Good luck.
 
-Move with the cursor keys
+Move with the cursor keys, or WASD
 Hold any key to accelerate
 Press P to pause the game
 Press M to turn the music on or off
-Press S to turn the sound fx on or off
+Press N to turn the sound fx on or off
+Or use a game controller.
 
 This is my first published game. I wanted to finish something not overly ambitious, but something I could be proud of, with some spit and polish and not just a prototype. I learnt a ton making this game. Pixel art is hard. Bigger pixel art is harder. Music and sound effects too. Everything you add to a game ripples all the way through everything else. And yet there's an amazing, supportive, and friendly community out there, building games, sharing tools and techniques and art. I want to thank all those that helped me, that encouraged me, that gave me feedback on early versions of the game. So now I have [Finally Finished Something](https://itch.io/jam/finally-finish-something-2022/rate/1339405).
 
@@ -23,6 +24,18 @@ This game has been submitted to the [Finally Finish Something 2022](https://itch
 * Art created with [Aseprite](https://www.aseprite.org/)
 
 ## CHANGELOG
+
+### 1.0.8 - 20 Feb 2022
+
+* Upgrade DragonRuby GTK to 3.6
+** Resolves audio issue with x86 Macs
+* Fixed a bug where the Wyrm speed was set incorrectly set when starting at a higher level
+
+### 1.0.7 - 13 Feb 2022
+
+* Don't queue the same direction repeatedly
+* Persist high score and high level
+* Added level selection to start game
 
 ### 1.0.6 - 12 Feb 2022
 

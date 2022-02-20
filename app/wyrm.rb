@@ -22,10 +22,11 @@ class Wyrm
   end
 
   def reset
-    @move_ticks = $game.max_move_ticks # number of ticks between moves
+    @body.reset
+
+    @move_ticks = calc_move_ticks # number of ticks between moves
     @accel_move_ticks = 0 # number of ticks to subtact from @move_ticks due to acceleration
 
-    @body.reset
     exit_portal!
   end
 
@@ -98,7 +99,7 @@ class Wyrm
     if @direction_queue.empty?
       @direction != OPPOSITE[dir]
     else
-      @direction_queue.last != OPPOSITE[dir]
+      @direction_queue.last != dir && @direction_queue.last != OPPOSITE[dir]
     end
   end
 

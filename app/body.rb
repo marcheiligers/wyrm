@@ -8,7 +8,7 @@ class Body
   end
 
   def reset
-    @length = 2
+    @length = $game.starting_level * 10 + 2
     @body = []
   end
 
