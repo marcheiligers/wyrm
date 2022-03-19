@@ -1,4 +1,4 @@
-class Gem
+class Coin
   ANIM_FRAMES = 5
   TOTAL_FRAMES = (ANIM_FRAMES - 2) * 2 + 2
   FORWARD_FRAMES = TOTAL_FRAMES / 2

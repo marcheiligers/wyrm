@@ -62,7 +62,7 @@ class Wyrm
   end
 
   def handle_input
-    if any_key_held? # always has [:raw_key, :char]
+    if any_key_held? || !$args.inputs.touch.empty?
       if $args.tick_count % [@move_ticks.idiv(ACCEL_MOD), 1].max == 0
         @accel_move_ticks = [@accel_move_ticks + 1, @move_ticks.idiv(1.5)].min
       end
@@ -70,7 +70,7 @@ class Wyrm
       @accel_move_ticks = [@accel_move_ticks - 1, 0].max
     end
 
-    dir = direction_down
+    dir = direction_down || direction_tap
     if $game.queue_dir_changes
       case dir
       when :right then @direction_queue << :right if should_turn?(:right)
@@ -84,6 +84,47 @@ class Wyrm
       when :left then @next_direction = :left if @direction != :right
       when :up then @next_direction = :up if @direction != :down
       when :down then @next_direction = :down if @direction != :up
+      end
+    end
+  end
+
+  def direction_tap
+    pos = $args.inputs.mouse.down
+    return if pos.nil?
+
+    cur_dir = @direction_queue.empty? ? @direction : @direction_queue.last
+
+    if pos.x < GRID_CENTER
+      if pos.y < GRID_MIDDLE # bottom left
+        case cur_dir
+        when :left then :down
+        when :down then :left
+        when :up then :left
+        when :right then :down
+        end
+      else # top left
+        case cur_dir
+        when :left then :up
+        when :up then :left
+        when :down then :left
+        when :right then :up
+        end
+      end
+    else
+      if pos.y < GRID_MIDDLE # bottom right
+        case cur_dir
+        when :right then :down
+        when :down then :right
+        when :up then :right
+        when :left then :down
+        end
+      else # top right
+        case cur_dir
+        when :right then :up
+        when :up then :right
+        when :down then :right
+        when :left then :up
+        end
       end
     end
   end

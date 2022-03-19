@@ -307,7 +307,7 @@ class Menu < MenuBase
       key_down = $args.inputs.keyboard.key_down
       $game.queue_dir_changes = !$game.queue_dir_changes if key_down.q
       $game.debug = !$game.debug if key_down.d
-      $game.gems_per_level = ($game.gems_per_level % GEMS_PER_LEVEL) + 1 if key_down.g
+      $game.gems_per_level = ($game.gems_per_level % COINS_PER_LEVEL) + 1 if key_down.g
       $game.max_move_ticks = [$game.max_move_ticks + 1, 60].min if key_down.close_square_brace
       $game.max_move_ticks = [$game.max_move_ticks - 1, 1].max if key_down.open_square_brace
       $game.min_move_ticks = [$game.min_move_ticks + 1, 60].min if key_down.close_curly_brace
