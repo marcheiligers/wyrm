@@ -40,10 +40,8 @@ require 'app/sky.rb'
 require 'app/portal.rb'
 require 'app/coin.rb'
 
-require 'app/menu_base.rb'
 require 'app/hold_anim.rb'
 require 'app/direction_keys_anim.rb'
-require 'app/menu.rb'
 
 require 'app/game_over.rb'
 require 'app/title_bar.rb'

@@ -74,9 +74,11 @@ class Game
     when :paused
       # part of global_input
     when :game_over, :win
-      reset if (accept? || $args.inputs.mouse.click) && $args.tick_count - @death_ticks > 30
-      @menu.child.reset
-      @menu.show
+      if (accept? || $args.inputs.mouse.click) && $args.tick_count - @death_ticks > 30
+        reset
+        @menu.child.reset
+        @menu.show
+      end
     when :game_portal_enter
       @wyrm.handle_input
       @wyrm.handle_move
