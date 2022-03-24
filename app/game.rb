@@ -1,4 +1,5 @@
-POINTS = [500, 250, 200, 150, 100, 75, 50, 25, 10, 5, 3, 2, 1]
+COIN_POINTS = [500, 250, 200, 150, 100, 75, 50, 25, 10, 5, 3, 2, 1]
+PORTAL_POINTS = [1_000, 750, 500, 250, 200, 150, 100, 75, 50, 25, 10, 5, 3]
 MAX_POINT_TICKS = 600
 
 CLOUD_CHANCE = [0.0005, 0.0008, 0.001, 0.0012, 0.0015, 0.0018, 0.002, 0.0023, 0.0025, 0.0028, 0.003, 0.0032]
@@ -20,8 +21,8 @@ class Game
   # => :game_over - Game over menu display
   # => :win - Win menu display
   # => :paused - Paused
-  attr_reader :state, :score, :level, :gems_left, :seen_help
-  attr_accessor :sound_fx, :queue_dir_changes, :debug, :gems_per_level,
+  attr_reader :state, :score, :level, :coins_left, :seen_help
+  attr_accessor :sound_fx, :queue_dir_changes, :debug, :coins_per_level,
                 :max_move_ticks, :min_move_ticks, :high_score, :high_level,
                 :starting_level
 
@@ -33,7 +34,7 @@ class Game
 
     @queue_dir_changes = true
     @debug = false
-    @gems_per_level = GEMS_PER_LEVEL
+    @coins_per_level = COINS_PER_LEVEL
 
     @max_move_ticks = MAX_MOVE_TICKS
     @min_move_ticks = MIN_MOVE_TICKS
@@ -49,7 +50,7 @@ class Game
     @wyrm.reset
     @score = 0
     @level = 0
-    @gems_left = gems_per_level
+    @coins_left = coins_per_level
   end
 
   def tick(args)
@@ -69,21 +70,26 @@ class Game
       @wyrm.handle_move
       handle_collisions
       handle_portal_exit
-      handle_gem
+      handle_coin
     when :paused
       # part of global_input
     when :game_over, :win
-      reset if accept? && $args.tick_count - @death_ticks > 30
-      @current_menu.drop!
+      if (accept? || $args.inputs.mouse.click) && $args.tick_count - @death_ticks > 30
+        reset
+        @menu.child.reset
+        @menu.show
+      end
     when :game_portal_enter
       @wyrm.handle_input
       @wyrm.handle_move
       handle_collisions unless @wyrm.state == :portal_enter || @wyrm.state == :portal_entered
       handle_portal_enter
+      handle_coin
     end
 
     args.outputs.background_color = [8, 32, 32]
     args.outputs.primitives << to_p
+    args.outputs.primitives << { x: 0, y: 0, text: args.inputs.touch.inspect, r: 255, g: 255, b: 255 }.label!
     args.outputs.primitives << debug_p if debug
   end
 
@@ -93,36 +99,19 @@ class Game
 
     @wyrm = Wyrm.new
     @portal = Portal.new
-    @gem = Gem.new
+    @coin = Coin.new
 
     reset
+    initialize_music
+    read_options
 
-    @menu = Menu.new
-    @current_menu = @menu
-    @current_menu.drop!
+    @menu = DropReveal.new(MainMenu.new)
+    @menu.show
+    @menu.attach_observer(self)
 
     @map = Map.new
 
     @state = :new_game
-
-    $args.audio[:theme] = {
-      input: 'sounds/theme1.ogg', # Filename
-      x: 0.0, y: 0.0, z: 0.0,     # Relative position to the listener, x, y, z from -1.0 to 1.0
-      gain: 0.3,                  # Volume (0.0 to 1.0)
-      pitch: 1.0,                 # Pitch of the sound (1.0 = original pitch)
-      paused: false,              # Set to true to pause the sound at the current playback position
-      looping: true               # Set to true to loop the sound/music until you stop it
-    }
-
-    options = $gtk.parse_json_file('options.json')
-    return unless options
-
-    @sound_fx = options['sound_fx']
-    music(options['music'])
-    @seen_help = options['seen_help']
-    @high_score = options['high_score'].to_i
-    @high_level = options['high_level'].to_i
-    @starting_level = options['starting_level'].to_i
   end
 
   def handle_global_input
@@ -148,6 +137,29 @@ class Game
 
   def seen_help?
     @seen_help
+  end
+
+  def initialize_music
+    $args.audio[:theme] = {
+      input: 'sounds/theme1.ogg', # Filename
+      x: 0.0, y: 0.0, z: 0.0,     # Relative position to the listener, x, y, z from -1.0 to 1.0
+      gain: 0.3,                  # Volume (0.0 to 1.0)
+      pitch: 1.0,                 # Pitch of the sound (1.0 = original pitch)
+      paused: false,              # Set to true to pause the sound at the current playback position
+      looping: true               # Set to true to loop the sound/music until you stop it
+    }
+  end
+
+  def read_options
+    options = $gtk.parse_json_file('options.json')
+    return unless options
+
+    @sound_fx = options['sound_fx']
+    music(options['music'])
+    @seen_help = options['seen_help']
+    @high_score = options['high_score'].to_i
+    @high_level = options['high_level'].to_i
+    @starting_level = options['starting_level'].to_i
   end
 
   def write_options
@@ -184,10 +196,10 @@ class Game
 
   def handle_game_starting
     @level = @starting_level
-    @current_menu.rise!
+    @menu.hide
     @map.next_level!
-    @gem.move_to(*random_gem_position)
-    @gems_left = gems_per_level
+    @coin.move_to(*random_coin_position)
+    @coins_left = coins_per_level
     @portal.show!
     @wyrm.reset
     @state = :menu_rising
@@ -195,28 +207,33 @@ class Game
     STARTING_CLOUDS.times { @animations << Cloud.new }
   end
 
+  def observe(event)
+    case event.target
+    when @menu
+      @state = :game_normal if event.name == :hidden
+    end
+  end
+
   def handle_menu_rising
-    @state = :game_normal if @current_menu.finished?
-    @gem_ticks = 0
+    # @state = :game_normal if @current_menu.finished?
+    @coin_ticks = 0
   end
 
   def handle_collisions
     if @wyrm.crashed_into_self?
       # we crashed into ourselves
-      puts "Crashed into ourselves"
+      # puts "Crashed into ourselves"
       @state = :game_over
       @death_ticks = $args.tick_count
-      @current_menu.reset
       $args.outputs.sounds << 'sounds/crash1.wav' if $game.sound_fx
       @high_score = @score if @score > @high_score
       @high_level = @level if @level > @high_level
       write_options
     elsif @map.wall?(@wyrm.logical_x, @wyrm.logical_y)
       # we crashed into a wall
-      puts "Crashed into a wall"
+      # puts "Crashed into a wall"
       @state = :game_over
       @death_ticks = $args.tick_count
-      @current_menu.reset
       # eJxjYtj-UN6UkSNNa_snBjBoqGdgWM-gzlTB-r_-vz1jqS1EkNsYQp_xgdAzIlH5MDpNDWrIOnYj44kMh1oYGG0gIu_9IDTja60pIiCGFEffKxDNpK_99wOI8SzX-TWIzmQ3_A6i73Es4gHRcY43hMDykhAT_kOgPMQNdAMACQ04sA..
       # louder: eJxjYtj-UN6UkSNNa_snBjBoqGdgWM-gzlTB-r_-vz1jqS1EkNsYQp_xgdAzIlH5MDpNDWrIOnYj44kMh1oYGG0gIu_9IDTja60pIiCGFEffKxDNpK_99wOI8SzX-TWIzmQ3_A6i73Es4gHRcY43hMDykhAT_kOg_P96BnoCAEYKOT0.
       $args.outputs.sounds << 'sounds/crash1.wav' if $game.sound_fx
@@ -226,22 +243,22 @@ class Game
     end
   end
 
-  def handle_gem
-    @gem_ticks += 1
-    return unless @wyrm.head == @gem.location && @gem.visible?
+  def handle_coin
+    @coin_ticks += 1
+    return unless @wyrm.head == @coin.location && @coin.visible?
 
     $args.outputs.sounds << 'sounds/gem2.wav' if $game.sound_fx
     @wyrm.grow
-    points = [POINTS[($args.easing.ease(0, @gem_ticks, MAX_POINT_TICKS, :identity) * POINTS.length).round].to_i, 1].max
+    points = COIN_POINTS[($args.easing.ease(0, @coin_ticks, MAX_POINT_TICKS, :identity) * COIN_POINTS.length).round].to_i.clamp(1)
     @score += points
     @animations << ScoreLabel.new(@wyrm.logical_x * GRID_SIZE, @wyrm.logical_y * GRID_SIZE, points)
-    @gems_left -= 1
+    @coins_left -= 1
+    @coin_ticks = 0
 
-    if @gems_left > 0
-      @gem.move_to(*random_gem_position)
-      @gem_ticks = 0
+    if @coins_left > 0
+      @coin.move_to(*random_coin_position)
     else
-      @gem.hide!
+      @coin.hide!
       @portal.show!
       @state = :game_portal_enter
     end
@@ -257,6 +274,9 @@ class Game
     return unless @portal.visible?
 
     if @wyrm.head == @portal.location && @wyrm.state == :normal
+      points = PORTAL_POINTS[($args.easing.ease(0, @coin_ticks, MAX_POINT_TICKS, :identity) * COIN_POINTS.length).round].to_i.clamp(3)
+      @score += points
+      @animations << ScoreLabel.new(@wyrm.logical_x * GRID_SIZE, (@wyrm.logical_y + 2) * GRID_SIZE, points)
       @wyrm.enter_portal!
     elsif @wyrm.state == :portal_entered
       # next level or win
@@ -265,14 +285,14 @@ class Game
         @map.next_level!
         @state = :game_normal
         @wyrm.exit_portal!
-        @gem.move_to(*random_gem_position)
-        @gem_ticks = 0
-        @gems_left = gems_per_level
-        @gem.show!
+        @coin.move_to(*random_coin_position)
+        @coin_ticks = 0
+        @coins_left = coins_per_level
+        @coin.show!
       else
         @state = :win
         @death_ticks = $args.tick_count
-        @current_menu.reset
+        # @current_menu.reset
         @high_score = @score if @score > @high_score
         @high_level = @level if @level > @high_level
         write_options
@@ -281,11 +301,11 @@ class Game
   end
 
   def handle_menu
-    @current_menu.handle_input
-    @state = @current_menu.new_state if @current_menu.new_state?
+    @menu.handle_inputs
+    @state = @menu.child.new_state if @menu.child.new_state
   end
 
-  def random_gem_position
+  def random_coin_position
     found = false
     begin
       pos = [rand(GRID_WIDTH), rand(GRID_HEIGHT - 1)] # the top row is reserved for the title bar
@@ -299,21 +319,21 @@ class Game
 
     case @state
     when :new_game, :game_starting
-      [@sky.to_p, @current_menu.to_p, @animations.map(&:to_p), @title_bar.to_p]
+      [@sky.to_p, @menu.to_primitives, @animations.map(&:to_p), @title_bar.to_p]
     when :menu_rising
       randoms
-      [@sky.to_p, @map.to_p, @wyrm.to_p, @gem.to_p, @animations.map(&:to_p), @portal.to_p, @current_menu.to_p, @title_bar.to_p]
+      [@sky.to_p, @map.to_p, @wyrm.to_p, @coin.to_p, @animations.map(&:to_p), @portal.to_p, @menu.to_primitives, @title_bar.to_p]
     when :paused
-      [@sky.to_p, @map.to_p, @wyrm.to_p, @gem.to_p, @animations.map(&:to_p), @portal.to_p, paused_screen, @title_bar.to_p]
+      [@sky.to_p, @map.to_p, @wyrm.to_p, @coin.to_p, @animations.map(&:to_p), @portal.to_p, paused_screen, @title_bar.to_p]
     when :game_normal
       randoms
-      [@sky.to_p, @map.to_p, @wyrm.to_p, @gem.to_p, @animations.map(&:to_p), @portal.to_p, @title_bar.to_p]
+      [@sky.to_p, @map.to_p, @wyrm.to_p, @coin.to_p, @animations.map(&:to_p), @portal.to_p, @title_bar.to_p]
     when :game_portal_enter
       randoms
       [@sky.to_p, @map.to_p, @wyrm.to_p, @animations.map(&:to_p), @portal.to_p, @title_bar.to_p]
     when :game_over
       randoms
-      [@sky.to_p, @map.to_p, @wyrm.to_p, @gem.to_p, @animations.map(&:to_p), game_over_screen, @title_bar.to_p]
+      [@sky.to_p, @map.to_p, @wyrm.to_p, @coin.to_p, @animations.map(&:to_p), game_over_screen, @title_bar.to_p]
     when :win
       randoms
       [@sky.to_p, @map.to_p, @animations.map(&:to_p), you_win_screen, @title_bar.to_p]

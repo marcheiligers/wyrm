@@ -1,0 +1,13 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    filewatcher (2.0.0.beta5)
+
+PLATFORMS
+  arm64-darwin-21
+
+DEPENDENCIES
+  filewatcher (= 2.0.0.beta5)
+
+BUNDLED WITH
+   2.2.32

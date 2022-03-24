@@ -8,9 +8,28 @@ GRID_MIDDLE = ($args.grid.h / 2).to_i
 MAX_MOVE_TICKS = 30
 MIN_MOVE_TICKS = 4
 
-GEMS_PER_LEVEL = 10
+COINS_PER_LEVEL = 10
 
-require 'app/input_manager.rb'
+# require 'lib/all.rb'
+require 'app/lib/uiex/concerns/forwardable.rb'
+require 'app/lib/uiex/concerns/focusable.rb'
+require 'app/lib/uiex/concerns/hoverable.rb'
+require 'app/lib/uiex/concerns/draggable.rb'
+require 'app/lib/uiex/concerns/easing.rb'
+require 'app/lib/uiex/concerns/color.rb'
+require 'app/lib/uiex/concerns/observable.rb'
+require 'app/lib/uiex/concerns/input_helpers.rb'
+
+require 'app/lib/uiex/window.rb'
+require 'app/lib/uiex/image.rb'
+require 'app/lib/uiex/reveal.rb'
+require 'app/lib/uiex/button.rb'
+# require 'app/lib/uiex/horizontal_rule.rb'
+require 'app/lib/uiex/focus_rect.rb'
+require 'app/lib/uiex/vertical_menu.rb'
+# require 'app/lib/uiex/slider.rb'
+
+
 require 'app/easing.rb'
 require 'app/numbers.rb'
 require 'app/score_label.rb'
@@ -19,12 +38,10 @@ require 'app/star.rb'
 require 'app/whisp.rb'
 require 'app/sky.rb'
 require 'app/portal.rb'
-require 'app/gem.rb'
+require 'app/coin.rb'
 
-require 'app/menu_base.rb'
 require 'app/hold_anim.rb'
 require 'app/direction_keys_anim.rb'
-require 'app/menu.rb'
 
 require 'app/game_over.rb'
 require 'app/title_bar.rb'
@@ -36,5 +53,7 @@ require 'app/body_sprite.rb'
 
 require 'app/body.rb'
 require 'app/wyrm.rb'
+
+require 'app/ui/main_menu.rb'
 
 require 'app/game.rb'

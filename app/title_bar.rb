@@ -33,17 +33,21 @@ class TitleBar
   SCORE_X = $args.grid.w - 6 * GRID_SIZE
 
   def initialize
-    @gems = GEMS_PER_LEVEL.times.map { |i| Gem.new(14 + i, 17, true) }
+    @coins = COINS_PER_LEVEL.times.map { |i| Coin.new(14 + i, 17, true) }
   end
 
   def to_p
-    @gems.each_with_index { |gem, i| $game.gems_left <= $game.gems_per_level - i - 1 ? gem.light! : gem.dark! }
+    @coins.each_with_index { |coin, i| $game.coins_left <= $game.coins_per_level - i - 1 ? coin.light! : coin.dark! }
 
-    [RECT, TITLE, LEVEL, level, @gems.first($game.gems_per_level).map(&:to_p), score]
+    [RECT, TITLE, LEVEL, level, @coins.first($game.coins_per_level).map(&:to_p), score]
   end
 
   def level
-    draw_number(LEVEL_X, BAR_Y, ($game.level + 1).to_s)
+    if $game.state == :new_game
+      draw_number(LEVEL_X, BAR_Y, ($game.high_level + 1).to_s)
+    else
+      draw_number(LEVEL_X, BAR_Y, ($game.level + 1).to_s)
+    end
   end
 
   def score

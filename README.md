@@ -25,6 +25,14 @@ This game has been submitted to the [Finally Finish Something 2022](https://itch
 
 ## CHANGELOG
 
+### 1.0.9 - 19 Mar 2022
+
+* Upgrade DragonRuby GTK to 3.8
+* Added uiex and refactored menus for mouse and touch
+* Added mouse/touch game controls
+* Add points for Portal entry
+* Show high score and level on title bar
+
 ### 1.0.8 - 20 Feb 2022
 
 * Upgrade DragonRuby GTK to 3.6
