@@ -18,15 +18,14 @@ class VerticalMenu < Window
 
   # Statics cannot be selected or clicked. Think seperators or subtitles.
   def add_static(child)
-    child.w = self.w - 2 * padding if child.w.to_i == 0
-    child.h = DEFAULT_HEIGHT if child.h.to_i == 0
-    child.x = (self.w - child.w) / 2 if child.x.to_i == 0
-    child.y = calc_top - child.h if child.y.to_i == 0
+    position_child(child)
+    child.focussable = false
     children.add(child)
   end
 
   def add_item(child)
-    add_static(child)
+    position_child(child)
+    children.add(child)
     child.attach_observer(self)
   end
 
@@ -43,7 +42,7 @@ class VerticalMenu < Window
     when :mouse_enter
       event.target.focus
       blur_children(event.target)
-      focus_rect.focus(event.target) if focus_rect
+      focus_rect&.focus(event.target)
     when :pressed
       puts "#{event.target} pressed"
     end
@@ -59,12 +58,12 @@ class VerticalMenu < Window
       child = prev_focussable_child
       child.focus
       blur_children(child)
-      focus_rect.focus(child) if focus_rect
+      focus_rect&.focus(child)
     when :down
       child = next_focussable_child
       child.focus
       blur_children(child)
-      focus_rect.focus(child) if focus_rect
+      focus_rect&.focus(child)
     end
   end
 
@@ -77,15 +76,23 @@ class VerticalMenu < Window
   end
 
 private
+
+  def position_child(child)
+    child.w = w - 2 * padding if child.w.to_i == 0
+    child.h = DEFAULT_HEIGHT if child.h.to_i == 0
+    child.x = (w - child.w) / 2 if child.x.to_i == 0
+    child.y = calc_top - child.h if child.y.to_i == 0
+  end
+
   def calc_top
-    self.h - (children.inject(0) { |total, child| total + child.h } + spacing * children.length + padding)
+    h - (children.inject(0) { |total, child| total + child.h } + spacing * children.length + padding)
   end
 
   def prev_focussable_child(cur_index = focussed_child_index)
-    children[0..(cur_index ? cur_index - 1 : -1)].reverse.detect { |child| child.focussable? }
+    children[0..(cur_index ? cur_index - 1 : -1)].reverse.detect(&:focussable?) || next_focussable_child(-1)
   end
 
   def next_focussable_child(cur_index = focussed_child_index)
-    children[(cur_index ? cur_index + 1 : 0)..-1].detect { |child| child.focussable? } || next_focussable_child(nil)
+    children[cur_index + 1..-1].detect(&:focussable?) || next_focussable_child(-1)
   end
 end
