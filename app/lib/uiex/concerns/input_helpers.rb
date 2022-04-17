@@ -76,11 +76,14 @@ module InputManager
     NUMERIC_MAP.detect { |key, _num| $args.keyboard.key_down.send(key) }&.last
   end
 
-  def accept?(rect = nil)
+  def accept?
     $args.keyboard.key_down.enter || $args.keyboard.key_down.space ||
       $args.controller_one.key_down.a || $args.controller_one.key_down.x ||
-      $args.controller_one.key_down.select || $args.controller_one.key_down.start ||
-      (rect && (click = $args.inputs.mouse.click) && click.inside_rect?(relative_rect)) # TODO: touch
+      $args.controller_one.key_down.select || $args.controller_one.key_down.start
+  end
+
+  def rect_clicked?(rect)
+    (click = $args.inputs.mouse.click) && click.inside_rect?(relative_rect)
   end
 
   def reject?

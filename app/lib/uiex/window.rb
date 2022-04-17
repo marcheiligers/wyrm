@@ -111,6 +111,7 @@ class WindowCollection
   def handle_inputs
     each do |child|
       break if @cleared
+
       child.handle_inputs
     end
     @cleared = false

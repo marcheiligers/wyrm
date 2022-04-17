@@ -5,6 +5,6 @@ devid=fascinationworks
 devtitle=Marc Heiligers
 gameid=wyrm
 gametitle=Wyrm
-version=1.0.9
+version=1.0.10
 icon=metadata/icon.png
 compile_ruby=false

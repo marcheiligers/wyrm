@@ -269,7 +269,8 @@ class Map
     end
   end
 
+  WALL_DEFAULTS = { w: GRID_SIZE, h: GRID_SIZE, path: 'sprites/wall.png', source_x: 10, source_w: 10 }
   def block(pos)
-    { x: pos.x * GRID_SIZE, y: pos.y * GRID_SIZE, w: GRID_SIZE, h: GRID_SIZE, path: 'sprites/wall.png' }.sprite!
+    { x: pos.x * GRID_SIZE, y: pos.y * GRID_SIZE }.sprite!(WALL_DEFAULTS)
   end
 end

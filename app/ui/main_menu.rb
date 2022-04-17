@@ -138,30 +138,24 @@ class MainMenu < VerticalMenu
         else
           help_1_submenu(:help_before_play_1)
         end
-        menu_sound
       when 'Options'
         options_submenu
-        menu_sound
       when 'Sound FX'
         $game.sound_fx = !$game.sound_fx?
         event.target.set($game.sound_fx?)
-        menu_sound
       when 'Music'
         $game.music(!$game.music?)
         event.target.set($game.music?)
-        menu_sound
       when 'Back'
         main_submenu
-        menu_sound
       when 'Help'
         help_1_submenu
-        menu_sound
       when 'Next'
         help_2_submenu if @state == :help_1
         help_2_submenu(:help_before_play_2) if @state == :help_before_play_1
         $game.seen_help!
-        menu_sound
       end
+      menu_sound
     end
 
     menu_sound if event.name == :focussed
