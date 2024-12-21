@@ -13,7 +13,7 @@ class Button < Window
   def handle_inputs
     super
 
-    notify_observers(Event.new(:pressed, self)) if focussed? && accept?(relative_rect)
+    notify_observers(Event.new(:pressed, self)) if (focussed? && accept?) || rect_clicked?(relative_rect)
   end
 
   def to_primitives

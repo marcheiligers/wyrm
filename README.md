@@ -25,6 +25,11 @@ This game has been submitted to the [Finally Finish Something 2022](https://itch
 
 ## CHANGELOG
 
+### 1.0.10 - 16 Apr 2022
+
+* Upgrade DragonRuby GTK to 3.12
+* Fixed issue with non-focusable menu elements
+
 ### 1.0.9 - 19 Mar 2022
 
 * Upgrade DragonRuby GTK to 3.8

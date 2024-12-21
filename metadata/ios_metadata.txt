@@ -11,4 +11,4 @@ appname=Wyrm
 # devcert is the certificate to use for development/deploying to your local device
 devcert=Apple Development: Marc Heiligers (5ZV2U4QHVH)
 # prodcert is the certificate to use for distribution to the app store
-prodcert=bob
+prodcert=Apple Distribution: Marc Heiligers (74J733QQ55)

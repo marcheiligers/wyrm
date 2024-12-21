@@ -97,33 +97,25 @@ class Wyrm
     if pos.x < GRID_CENTER
       if pos.y < GRID_MIDDLE # bottom left
         case cur_dir
-        when :left then :down
-        when :down then :left
-        when :up then :left
-        when :right then :down
+        when :left, :right then :down
+        when :up, :down then :left
         end
       else # top left
         case cur_dir
-        when :left then :up
-        when :up then :left
-        when :down then :left
-        when :right then :up
+        when :left, :right then :up
+        when :up, :down then :left
         end
       end
     else
       if pos.y < GRID_MIDDLE # bottom right
         case cur_dir
-        when :right then :down
-        when :down then :right
-        when :up then :right
-        when :left then :down
+        when :left, :right then :down
+        when :up, :down then :right
         end
       else # top right
         case cur_dir
-        when :right then :up
-        when :up then :right
-        when :down then :right
-        when :left then :up
+        when :left, :right then :up
+        when :up, :down then :right
         end
       end
     end
