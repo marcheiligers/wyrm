@@ -92,7 +92,7 @@ module InputManager
   end
 
   def any_key_held?
-    $args.keyboard.key_held.truthy_keys.length > 2 ||
+    $args.keyboard.key_held.truthy_keys.length > 0 ||
       $args.controller_one.key_held.truthy_keys.length > 0
   end
 end
