@@ -1,6 +1,6 @@
 # Wyrm
 
-Snake reimagined as ... a Dragon. 
+Snake reimagined as ... a Dragon.
 
 Maneuver the Wyrm through the sky, collecting magic coins to open portals which will take you to the next level. With each coin you're one step closer to the end, but you also get longer and faster. Avoid walls and avoid hitting yourself or else you'll have to start over. There are 10 levels. Good luck.
 
@@ -24,6 +24,11 @@ This game has been submitted to the [Finally Finish Something 2022](https://itch
 * Art created with [Aseprite](https://www.aseprite.org/)
 
 ## CHANGELOG
+
+### 1.0.11 - 21 Dec 2024
+
+* Upgrade DragonRuby GTK to 6.13
+* First pass at making game playable on mobile
 
 ### 1.0.10 - 16 Apr 2022
 
@@ -90,7 +95,7 @@ This game has been submitted to the [Finally Finish Something 2022](https://itch
 
 ### 0.1.7 - 9 Jan 2022
 
-* Added hidden move rate adjustments in Options `[`, `]`, `{`, `}` 
+* Added hidden move rate adjustments in Options `[`, `]`, `{`, `}`
 * Redid menu top and corners
 * Added icon (needs work)
 * Changed morning background color and selection
@@ -119,7 +124,7 @@ This game has been submitted to the [Finally Finish Something 2022](https://itch
 ### 0.1.3 - 5 Jan 2022
 
 * Added music (and mute option)
-* Fixed game over not being able to restart bug 
+* Fixed game over not being able to restart bug
 * Added win state
 
 ### 0.1.2 - 4 Jan 2022
