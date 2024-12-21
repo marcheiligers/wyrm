@@ -1,3 +1,14 @@
-rm game_state*.txt
+rm -rf ../build
+mkdir -p ../build
+cp -R app ../build
+cp -R metadata ../build
+cp -R sounds ../build
+rm ../build/sounds/*.cpt
+rm -rf ../build/sounds/*.band
+rm ../build/sounds/*.mp3
+
+cp -R sprites ../build
+rm ../build/sprites/*.aseprite
+
 cd ..
-./dragonruby-publish wyrm
+./dragonruby-publish build
