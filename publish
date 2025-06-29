@@ -1,7 +1,9 @@
 rm -rf ../build
 mkdir -p ../build
+
 cp -R app ../build
 cp -R metadata ../build
+
 cp -R sounds ../build
 rm ../build/sounds/*.cpt
 rm -rf ../build/sounds/*.band
