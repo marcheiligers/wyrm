@@ -1,16 +1,88 @@
+# Check for flags
+PACKAGE_FLAG="--only-package"
+OPEN_HTML=false
+
+for arg in "$@"; do
+  case $arg in
+    --deploy)
+      PACKAGE_FLAG=""
+      ;;
+    --open-html)
+      OPEN_HTML=true
+      ;;
+  esac
+done
+
+# Extract version from game_metadata.txt
+VERSION=$(grep "^version=" metadata/game_metadata.txt | cut -d'=' -f2)
+
 rm -rf ../build
-mkdir -p ../build
+mkdir -p ../build/metadata ../build/sprites ../build/sounds
 
 cp -R app ../build
-cp -R metadata ../build
+cp -R lib ../build
+cp -R metadata/game_metadata.txt ../build/metadata
+cp -R metadata/icon.png ../build/metadata
 
-cp -R sounds ../build
-rm ../build/sounds/*.cpt
-rm -rf ../build/sounds/*.band
-rm ../build/sounds/*.mp3
+# sprites
+cp sprites/body3.png ../build/sprites
+cp sprites/cloud9.png ../build/sprites
+cp sprites/cloud10.png ../build/sprites
+cp sprites/direction_keys.png ../build/sprites
+cp sprites/game-over.png ../build/sprites
+cp sprites/gem-dark.png ../build/sprites
+cp sprites/gem4.png ../build/sprites
+cp sprites/head3.png ../build/sprites
+cp sprites/hold-anim.png ../build/sprites
+cp sprites/instructions.png ../build/sprites
+cp sprites/label-back.png ../build/sprites
+cp sprites/label-help.png ../build/sprites
+cp sprites/label-music.png ../build/sprites
+cp sprites/label-next.png ../build/sprites
+cp sprites/label-options.png ../build/sprites
+cp sprites/label-play.png ../build/sprites
+cp sprites/label-sound-fx.png ../build/sprites
+cp sprites/level.png ../build/sprites
+cp sprites/menu_corner5.png ../build/sprites
+cp sprites/menu_top5.png ../build/sprites
+cp sprites/number_keys.png ../build/sprites
+cp sprites/numbers3.png ../build/sprites
+cp sprites/paused.png ../build/sprites
+cp sprites/portal4.png ../build/sprites
+cp sprites/press-space.png ../build/sprites
+cp sprites/selection.png ../build/sprites
+cp sprites/star2.png ../build/sprites
+cp sprites/tail1.png ../build/sprites
+cp sprites/title-small.png ../build/sprites
+cp sprites/title.png ../build/sprites
+cp sprites/wall.png ../build/sprites
+cp sprites/whisp1.png ../build/sprites
+cp sprites/wings2.png ../build/sprites
+cp sprites/you-win.png ../build/sprites
 
-cp -R sprites ../build
-rm ../build/sprites/*.aseprite
+# sounds
+cp sounds/crash1.wav ../build/sounds
+cp sounds/gem2.wav ../build/sounds
+cp sounds/menu1.wav ../build/sounds
+cp sounds/move1.wav ../build/sounds
+cp sounds/portal3.wav ../build/sounds
+cp sounds/theme1.ogg ../build/sounds
+
+cp -f sprites/clicktoplaydiv.png .dragonruby/stubs/html5/stub # update the click to play image
+cp -rn ../.dragonruby/stubs/html5 ../.dragonruby/stubs/html5.bak # backup the html5 stub unless the backup already exists
+rm -r ../.dragonruby/stubs/html5 # remove the original html5 stub
+cp -r .dragonruby/stubs/html5 ../.dragonruby/stubs/html5 # copy over our stub
+# cat safari_links.js >> ../.dragonruby/stubs/html5/dragonruby-html5-loader.js
 
 cd ..
-./dragonruby-publish build
+./dragonruby-publish build $PACKAGE_FLAG || true
+
+cd -
+rm -r ../.dragonruby/stubs/html5 # remove the our html5 stub
+cp -r ../.dragonruby/stubs/html5.bak ../.dragonruby/stubs/html5 # restore the html5 stub
+
+# If --open-html flag is passed, serve and open the HTML build
+if [ "$OPEN_HTML" = true ]; then
+  cd ..
+  ./dragonruby-httpd builds/wyrm-html5-$VERSION
+fi
