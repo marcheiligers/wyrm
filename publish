@@ -1,7 +1,3 @@
-# rm game_state*.txt
-# cd ..
-# ./dragonruby-publish wyrm
-
 # Check for flags
 PACKAGE_FLAG="--only-package"
 OPEN_HTML=false
@@ -73,7 +69,8 @@ cp sounds/portal3.wav ../build/sounds
 cp sounds/theme1.ogg ../build/sounds
 
 cp -f sprites/clicktoplaydiv.png .dragonruby/stubs/html5/stub # update the click to play image
-mv ../.dragonruby/stubs/html5 ../.dragonruby/stubs/html5.bak # backup the html5 stub
+cp -rn ../.dragonruby/stubs/html5 ../.dragonruby/stubs/html5.bak # backup the html5 stub unless the backup already exists
+rm -r ../.dragonruby/stubs/html5 # remove the original html5 stub
 cp -r .dragonruby/stubs/html5 ../.dragonruby/stubs/html5 # copy over our stub
 # cat safari_links.js >> ../.dragonruby/stubs/html5/dragonruby-html5-loader.js
 
@@ -81,11 +78,11 @@ cd ..
 ./dragonruby-publish build $PACKAGE_FLAG || true
 
 cd -
-mv ../.dragonruby/stubs/html5.bak ../.dragonruby/stubs/html5 # restore the html5 stub
+rm -r ../.dragonruby/stubs/html5 # remove the our html5 stub
+cp -r ../.dragonruby/stubs/html5.bak ../.dragonruby/stubs/html5 # restore the html5 stub
 
 # If --open-html flag is passed, serve and open the HTML build
 if [ "$OPEN_HTML" = true ]; then
-  echo "Opening HTML build at http://localhost:8080"
   cd ..
   ./dragonruby-httpd builds/wyrm-html5-$VERSION
 fi
